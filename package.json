@@ -1,11 +1,14 @@
 {
   "name": "@steuchs/qsrc2react",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Experimental prototype for covererting qsrc-code to react-code. Do not use unless explicitly told to do so by the author!",
   "main": "index.js",
   "exports":{
     "./transpile": "./index.js",
-    "./webTranspile": "./exports/qsrc2react.mjs"
+    "./webTranspile": {
+      "types": "./exports/qsrc2react.d.ts",
+      "import": "./exports/qsrc2react.mjs"
+    }
   },
   "dependencies": {
     "antlr4": "^4.13.1-patch-1",
