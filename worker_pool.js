@@ -3,9 +3,11 @@
 import { AsyncResource } from 'node:async_hooks';
 import { EventEmitter } from 'node:events';
 import path from 'node:path';
+import { fileURLToPath } from 'url';
 import { Worker } from 'node:worker_threads';
 
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const kTaskInfo = Symbol('kTaskInfo');
 const kWorkerFreedEvent = Symbol('kWorkerFreedEvent');
