@@ -71,24 +71,26 @@ export default function defaultProcess(code){
     const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 
-    const findTitleOfOwnPassageRegex = /return <div id="(.*)"><\/div>;/g;
-    const findTitleMatch = twineCode.match(findTitleOfOwnPassageRegex);
-    if(!findTitleMatch)
+    const findTitleOfOwnPassageRegex = /return <div id="(.*?)"><\/div>;/g;
+    const matches = [...twineCode.matchAll(findTitleOfOwnPassageRegex)];
+
+    if (matches.length === 0)
         throw new Error("TITLE NOT FOUND");
-    const title = findTitleMatch[1];
+
+    const title = matches[0][1];
 
 
     const imports = new Set();
     twineCode = twineCode.replace(
-        /{type: "GS", p:async \(_\$args,_args, _QSP,_func\) => \[([^\]]+)\]},/g,
-        (_, _arguments) => {
-            const argumentsSplit = _arguments.split(",").map((a)=>{
+        /{type: "GS", p:async \(_\$args,_args, _QSP,_func\) => \[([^\}\[]*?)((?:\s*,\s*[^\}]*)*)\]},/g,
+        (_, _title, _arguments) => {
+            /*const argumentsSplit = _arguments.split(",").map((a)=>{
                 a = a.trim();
                 return a;
-            });
-            const fname = argumentsSplit[0].slice(1, -1).replaceAll("$", "_").toLowerCase();
+            });*/
+            const fname = _title.slice(1, -1).replaceAll("$", "_").toLowerCase();
             
-            const remainingArguments = argumentsSplit.slice(1).join(",");
+            const remainingArguments = _arguments.split(",").map((arg)=>arg.trim()).filter((arg)=>!!arg);
 
             if(title == fname)
                 return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>["SELF",[${remainingArguments}]]},`;    
