@@ -12,11 +12,8 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     twineCode = twineCode.replaceAll("</font", "</span");
     twineCode = twineCode.replaceAll("size=\"+", "style=\"font-size:");
 
-    const inlineLinkRegex = /<a\s+href\s*="\s*exec\s*:\s*gt\s+'(\w+)'(?:\s*,\s*'(\w+)')?\s*">(.*?)<\/a>/g;
-    twineCode = twineCode.replace(inlineLinkRegex, '<Link to={["$1","$2"]}>$3</Link>');
-
-    const inlineLinkRegexEmergency = /<a(.*?)>(.*?)<\/a>/g;
-    twineCode = twineCode.replace(inlineLinkRegexEmergency, 'BROKEN LINK');
+    const inlineLinkRegexEmergency = /<a\s+href\s*="exec:(.*?)">(.*?)<\/a>/g;
+    twineCode = twineCode.replace(inlineLinkRegexEmergency, '<a data-code="$1">$2</a>');
 
     //Default
     for (const funcName of ["iif", "instr", "isnum", "lcase", "len", "loc", "max", "mid", "min", "rand", "replace", "rgb", "str","strpos", "trim", "ucase", "val"]) {
@@ -73,6 +70,14 @@ export default function defaultProcess(code){
 
     const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
+
+    const findTitleOfOwnPassageRegex = /return <div id="(.*)"><\/div>;/g;
+    const findTitleMatch = twineCode.match(findTitleOfOwnPassageRegex);
+    if(!findTitleMatch)
+        throw new Error("TITLE NOT FOUND");
+    const title = findTitleMatch[1];
+
+
     const imports = new Set();
     twineCode = twineCode.replace(
         /{type: "GS", p:async \(_\$args,_args, _QSP,_func\) => \[([^\]]+)\]},/g,
@@ -84,6 +89,11 @@ export default function defaultProcess(code){
             const fname = argumentsSplit[0].slice(1, -1).replaceAll("$", "_").toLowerCase();
             
             const remainingArguments = argumentsSplit.slice(1).join(",");
+
+            if(title == fname)
+                return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>["SELF",[${remainingArguments}]]},`;    
+
+
             const codeName = `code_${capitalize(fname)}`;
 
             imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
