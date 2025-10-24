@@ -46,11 +46,11 @@ export function postProcessCode(twineCode,checkLineEndings=true){
                     if (codeLine.endsWith(`},`))
                         inMultiline = false;
                     else
-                        codeLine = codeLine.trimEnd() + "\\";
+                        codeLine = codeLine.trimEnd() + "\\n\\";
                 } else {
                     if (codeLine.match(incompleteLineRegex)) {
                         inMultiline = true;
-                        codeLine = codeLine.trimEnd() + "\\";
+                        codeLine = codeLine.trimEnd() + "\\n\\";
                     }
                 }
 
