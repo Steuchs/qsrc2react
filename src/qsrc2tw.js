@@ -12,15 +12,38 @@ export default function qsrc2tw(input, isPassage = false, asCommandArray = false
 	else
 		input += "\n";
 	const chars = new antlr4.InputStream(input);
-	const lexer = new qsrcLexer(chars);
-	const tokens = new antlr4.CommonTokenStream(lexer);
-	const parser = new qsrcParser(tokens);
+
+	var lexer;
+	try{
+		lexer = new qsrcLexer(chars);
+	} catch (e) {
+		throw new Error(`Lexer Error: ${e.message}`);
+	}
+
+	var tokens;
+	try {
+		tokens = new antlr4.CommonTokenStream(lexer);
+	} catch (e) {
+		throw new Error(`Tokenizer Error: ${e.message}`);
+	} 
+
+	var parser;
+	try{
+		parser = new qsrcParser(tokens);
+	}catch(e){
+		throw new Error(`Parser Error: ${e.message}`);
+	}
 	const tree = parser.passage();
 
     const listener = new Listener();
     antlr4.tree.ParseTreeWalker.DEFAULT.walk(listener, tree);
 
-	const output = new QsrcVisitor().visitPassage(tree, isPassage, asCommandArray);
+	var output;
+	try {
+		output = new QsrcVisitor().visitPassage(tree, isPassage, asCommandArray);
+	} catch (e) {
+		throw new Error(`Visitor Error: ${e.message}`);
+	}
 
     return output;
 }

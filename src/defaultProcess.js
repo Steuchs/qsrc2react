@@ -68,20 +68,26 @@ export function postProcessCode(twineCode,checkLineEndings=true){
 }
 
 export default function defaultProcess(code){
-    let twineCode = qsrc2tw(code, true);
+
+    
+    var twineCode = qsrc2tw(code, true);
+    //console.log(twineCode);
+    
 
     twineCode = postProcessCode(twineCode);
-
+    
     const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 
     const findTitleOfOwnPassageRegex = /return <div id="(.*?)"><\/div>;/g;
-    const matches = [...twineCode.matchAll(findTitleOfOwnPassageRegex)];
-
-    if (matches.length === 0)
+    
+    try{
+        const matches = [...twineCode.matchAll(findTitleOfOwnPassageRegex)];
+        var title = matches[0][1];
+    }
+    catch(e){
         throw new Error("TITLE NOT FOUND");
-
-    const title = matches[0][1];
+    }
 
 
     const imports = new Set();
@@ -107,6 +113,8 @@ export default function defaultProcess(code){
             
         }
     );
+
+
 
     const twineLines = twineCode.split("\n");
     twineLines.splice(1,0,...Array.from(imports).sort());

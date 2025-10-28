@@ -159,22 +159,30 @@ compareOperator:
 
 notEqual: NEQ | EXCLAMATIONMARK;
 
+value: value logicOp comparee | comparee; 
 
-value:
-	ParenthesisLeft value ParenthesisRight
-	| numberLiteralWithOptionalSign
-	| identifierNumber
-	| INPUT value
+comparee: comparee compareOperator sum | sum ;
+
+sum: sum addOp term  | term ;
+
+term: term mulOp factor  | factor ;
+
+addOp: NEWLINE* (PLUS | MINUS);
+logicOp: NEWLINE* (AND | OR);
+mulOp: NEWLINE* (STAR | MOD | DIVIDE);
+
+factor:
+	ParenthesisLeft value ParenthesisRight	
+	| numberLiteralWithOptionalSign			
+	| identifierNumber						
+	| INPUT value 
 	| invert value
-	| functionWithNumberReturn
-	| value numberOperator value 
-	| value compareOperator value
-	
-	| escapedString
-	| identifierString
-	| functionWithStringReturn
-	| multilineBlock
-	| MINUS value;
+	| functionWithNumberReturn	
+	| escapedString							
+	| identifierString			
+	| functionWithStringReturn	
+	| multilineBlock			
+	| MINUS value ;
 
 numberLiteralWithOptionalSign : (PLUS|MINUS)? NumberLiteral;
 

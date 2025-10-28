@@ -342,6 +342,48 @@ export default class qsrcParserVisitor extends antlr4.tree.ParseTreeVisitor {
 	}
 
 
+	// Visit a parse tree produced by qsrcParser#comparee.
+	visitComparee(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#sum.
+	visitSum(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#term.
+	visitTerm(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#addOp.
+	visitAddOp(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#logicOp.
+	visitLogicOp(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#mulOp.
+	visitMulOp(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#factor.
+	visitFactor(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
 	// Visit a parse tree produced by qsrcParser#numberLiteralWithOptionalSign.
 	visitNumberLiteralWithOptionalSign(ctx) {
 	  return this.visitChildren(ctx);

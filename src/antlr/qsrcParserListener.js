@@ -509,6 +509,69 @@ export default class qsrcParserListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by qsrcParser#comparee.
+	enterComparee(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#comparee.
+	exitComparee(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#sum.
+	enterSum(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#sum.
+	exitSum(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#term.
+	enterTerm(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#term.
+	exitTerm(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#addOp.
+	enterAddOp(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#addOp.
+	exitAddOp(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#logicOp.
+	enterLogicOp(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#logicOp.
+	exitLogicOp(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#mulOp.
+	enterMulOp(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#mulOp.
+	exitMulOp(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#factor.
+	enterFactor(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#factor.
+	exitFactor(ctx) {
+	}
+
+
 	// Enter a parse tree produced by qsrcParser#numberLiteralWithOptionalSign.
 	enterNumberLiteralWithOptionalSign(ctx) {
 	}

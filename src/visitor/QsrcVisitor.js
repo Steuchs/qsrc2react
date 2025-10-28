@@ -545,7 +545,58 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
         return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.${ctx.SYSSETTING().getText().toUpperCase()}(${this.visitValue(ctx.value())})}`];
     }
 
-    visitValue(ctx,{inPrintContext=false}={}){
+    visitLogicOp(ctx) {
+        if (ctx.AND())
+            return "&&";
+        if (ctx.OR())
+            return "||";
+        return "visitLogicOp-ERR"
+    }
+
+    visitValue(ctx, { inPrintContext = false } = {}) {
+        if (ctx.logicOp()) return `${this.visitValue(ctx.value())} ${this.visitLogicOp(ctx.logicOp())} ${this.visitComparee(ctx.comparee())}`;
+        return this.visitComparee(ctx.comparee());
+    }
+
+    visitComparee(ctx, { inPrintContext = false } = {}) {
+        if (ctx.compareOperator()) return `${this.visitComparee(ctx.comparee())} ${this.visitCompareOperator(ctx.compareOperator())} ${this.visitSum(ctx.sum())}`;
+        return this.visitSum(ctx.sum());
+    }
+
+    visitAddOp(ctx){
+        if(ctx.PLUS())
+            return "+";
+        if (ctx.MINUS())
+            return "-";
+        return "visitAddOp-ERR"
+    }
+
+    visitSum(ctx){
+        if (ctx.addOp()) return `${this.visitSum(ctx.sum())} ${this.visitAddOp(ctx.addOp())} ${this.visitTerm(ctx.term())}`;
+        return this.visitTerm(ctx.term());
+    }
+
+    visitMulOp(ctx) {
+        if (ctx.STAR())
+            return "*";
+        if (ctx.MOD())
+            return "%";
+        if (ctx.DIVIDE())
+            return "/";
+        return "visitMulOp-ERR"
+    }
+
+    visitTerm(ctx) {
+        if (ctx.mulOp()){
+            const op = this.visitMulOp(ctx.mulOp());
+            if(op == "/")
+                return `Math.trunc(${this.visitTerm(ctx.term())} ${op} ${this.visitFactor(ctx.factor())})`;
+            return `${this.visitTerm(ctx.term())} ${op} ${this.visitFactor(ctx.factor())}`;
+        }
+        return this.visitFactor(ctx.factor());
+    }
+
+    visitFactor(ctx,{inPrintContext=false}={}){
 
         if(ctx.ParenthesisLeft()) return `(${this.visitValue(ctx.value(0))})`;
         if(ctx.numberLiteralWithOptionalSign()) return this.visitNumberLiteralWithOptionalSign(ctx.numberLiteralWithOptionalSign());
@@ -553,8 +604,8 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
         if(ctx.INPUT()) return `(prompt(${this.visitValue(ctx.value(0))}) ?? "")`
         if(ctx.invert()) return `_func.logic_not(${this.visitValue(ctx.value(0))})`;
         if(ctx.functionWithNumberReturn()) return this.visitFunctionWithNumberReturn(ctx.functionWithNumberReturn());
-        if(ctx.compareOperator()) return `${this.visitValue(ctx.value(0))} ${this.visitCompareOperator(ctx.compareOperator())} ${this.visitValue(ctx.value(1))}`;
-        if(ctx.numberOperator()){
+        //if(ctx.compareOperator()) return `${this.visitValue(ctx.value(0))} ${this.visitCompareOperator(ctx.compareOperator())} ${this.visitValue(ctx.value(1))}`;
+        /*if(ctx.numberOperator()){
             const left = this.visitValue(ctx.value(0));
             const right= this.visitValue(ctx.value(1));
             const op = this.visitNumberOperator(ctx.numberOperator(0));
@@ -568,7 +619,7 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
                 //return `(setup.logic_or(${left},${right}))`
             else
                 return `${left} ${op} ${right}`;
-        }
+        }*/
 
         if(ctx.escapedString()) return this.visitEscapedString(ctx.escapedString(),{inPrintContext: inPrintContext});
         if(ctx.identifierString()) return this.visitIdentifierString(ctx.identifierString());
