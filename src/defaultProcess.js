@@ -32,7 +32,7 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     }
 
     // Comparison from condition to int
-    twineCode = twineCode.replace(/(?<!\?\s*1\s*:\s*0\s*)==\s*0/g, "? 1 : 0 == 0");
+    twineCode = twineCode.replace(/(?<!\?\s*1\s*:\s*0\s*)==\s*0/g, "? 0 : 1");
 
     //Incomplete line endings (multi-line-strings), disabled for command-blocks-only because they don't have commas
     if (checkLineEndings){
