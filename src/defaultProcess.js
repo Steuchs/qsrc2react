@@ -36,7 +36,7 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     twineCode = twineCode.replaceAll("_func.arrsize(_QSP,'ARGS')", "_args.length");
 
     // Comparison from condition to int
-    twineCode = twineCode.replace(/(?<!\?\s*1\s*:\s*0\s*)==\s*0/g, "? 0 : 1");
+    //twineCode = twineCode.replace(/(?<!\?\s*1\s*:\s*0\s*)==\s*0/g, "? 0 : 1");
 
     //Incomplete line endings (multi-line-strings), disabled for command-blocks-only because they don't have commas
     if (checkLineEndings){

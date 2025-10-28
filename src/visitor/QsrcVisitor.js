@@ -559,7 +559,20 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
     }
 
     visitComparee(ctx, { inPrintContext = false } = {}) {
-        if (ctx.compareOperator()) return `${this.visitComparee(ctx.comparee())} ${this.visitCompareOperator(ctx.compareOperator())} ${this.visitSum(ctx.sum())}`;
+        if (ctx.compareOperator()){
+            const compare = this.visitComparee(ctx.comparee());
+            const sum = this.visitSum(ctx.sum());
+            const op = this.visitCompareOperator(ctx.compareOperator());
+            switch(op){
+                case ">=": return `_func.lo_ge(${compare},${sum})`;
+                case "<=": return `_func.lo_le(${compare},${sum})`;
+                case ">": return `_func.lo_gt(${compare},${sum})`;
+                case "<": return `_func.lo_lt(${compare},${sum})`;
+                case "==": return `_func.lo_eq(${compare},${sum})`;
+                case "!=": return `_func.lo_neq(${compare},${sum})`;                    
+            }
+            return `EQ_ERROR "${op}"`;
+        }
         return this.visitSum(ctx.sum());
     }
 
