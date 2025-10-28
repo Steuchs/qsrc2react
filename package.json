@@ -1,6 +1,6 @@
 {
   "name": "@steuchs/qsrc2react",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Experimental prototype for covererting qsrc-code to react-code. Do not use unless explicitly told to do so by the author!",
   "main": "index.js",
   "exports":{
