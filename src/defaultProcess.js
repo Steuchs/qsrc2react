@@ -31,6 +31,10 @@ export function postProcessCode(twineCode,checkLineEndings=true){
         twineCode = twineCode.replace(regex, "await _func.$1(_QSP,");
     }
 
+    //Arrsizes for arguments
+    twineCode = twineCode.replaceAll("_func.arrsize(_QSP,'$ARGS')","_$args.length");
+    twineCode = twineCode.replaceAll("_func.arrsize(_QSP,'ARGS')", "_args.length");
+
     // Comparison from condition to int
     twineCode = twineCode.replace(/(?<!\?\s*1\s*:\s*0\s*)==\s*0/g, "? 0 : 1");
 
