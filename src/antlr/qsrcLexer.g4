@@ -143,7 +143,7 @@ PassageIdentifier: '#' ' '* DOLLAR? WORD NEWLINE;
 PassageEndMarker:
 	'---' ' '+ DOLLAR? WORD ' '+ '--------------' '-'* NEWLINE*;
 
-SYSCALL: (C L A) | (STAR? C L E A R) | (C L O S E) | (STAR? C L R) | (C L S) | (C M D C L E A R) | (C M D C L R) | (C L O S E ' ' A L L) | (E X I T) | (K I L L A L L);
+SYSCALL: (C L A) | (STAR? C L E A R) | (C L O S E) | (STAR? C L R) | (C L S) | (C M D C L E A R) | (C M D C L R) | (C L O S E ' ' A L L) | (E X I T) | (K I L L A L L) | (K I L L O B J);
 SYSSETTING: (S H O W S T A T)
 	| (S H O W O B J S)
 	| (S H O W I N P U T)
@@ -163,7 +163,6 @@ XGOTO: X GOTO;
 INPUT: '$'? I N P U T;
 
 JUMP: J U M P;
-
 KILLVAR: K I L L V A R;
 MSG: M S G;
 OPENGAME: O P E N G A M E;
