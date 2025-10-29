@@ -209,14 +209,14 @@ export default class QsrcVisitor extends qsrcParserVisitor{
 
     visitIdentifierNumber(ctx){
         if(ctx.arrayIndex())
-            return `_QSP.${ctx.WORD()}${this.visitArrayIndex(ctx.arrayIndex())}`;
-        return `_QSP.${ctx.WORD()}[0]`;
+            return `_QSP.${ctx.WORD().toString().toLowerCase()}${this.visitArrayIndex(ctx.arrayIndex())}`;
+        return `_QSP.${ctx.WORD().toString().toLowerCase() }[0]`;
     }
 
     visitIdentifierString(ctx){
         if(ctx.arrayIndex())
-            return `_QSP.$${ctx.WORD()}${this.visitArrayIndex(ctx.arrayIndex())}`;
-        return `_QSP.$${ctx.WORD()}[0]`;
+            return `_QSP.$${ctx.WORD().toString().toLowerCase() }${this.visitArrayIndex(ctx.arrayIndex())}`;
+        return `_QSP.$${ctx.WORD().toString().toLowerCase() }[0]`;
     }
 
     visitIfBlock(ctx,indent = 0){

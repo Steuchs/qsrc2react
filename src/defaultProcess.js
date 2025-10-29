@@ -4,8 +4,8 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     //const headMatch = twineCode.match(/export\s+default\s+function\s+([A-Za-z_$][\w$]*)/);
     //const functionName = headMatch[1];
 
-    twineCode = twineCode.replaceAll("QSP.$ARGS", "$args");
-    twineCode = twineCode.replaceAll("QSP.ARGS", "args")
+    twineCode = twineCode.replace(/QSP\.\$args(?!\w)/g, "$args");
+    twineCode = twineCode.replace(/QSP\.args(?!\w)/g, "args");
 
     twineCode = twineCode.replaceAll("<br>", "<br/>");
     twineCode = twineCode.replaceAll("<font", "<span");
@@ -32,8 +32,8 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     }
 
     //Arrsizes for arguments
-    twineCode = twineCode.replaceAll("_func.arrsize(_QSP,'$ARGS')","_$args.length");
-    twineCode = twineCode.replaceAll("_func.arrsize(_QSP,'ARGS')", "_args.length");
+    twineCode = twineCode.replaceAll("_func.arrsize(_QSP,'$args')","_$args.length");
+    twineCode = twineCode.replaceAll("_func.arrsize(_QSP,'args')", "_args.length");
 
     // Comparison from condition to int
     //twineCode = twineCode.replace(/(?<!\?\s*1\s*:\s*0\s*)==\s*0/g, "? 0 : 1");
