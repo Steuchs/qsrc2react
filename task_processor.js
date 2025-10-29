@@ -22,6 +22,7 @@ async function convertFile(task){
 		const outPath = task.outPath;
 		const generatedFilesPrefix = task.generatedFilesPrefix;
 		const options = task.options;
+		const existingFiles = task.existingFiles;
 
 	
 		const data = fs.readFileSync(filePath,{encoding: 'utf8'});
@@ -100,7 +101,7 @@ async function convertFile(task){
 				console.warn("Unreckognized Convert Mode");
 				break;
 		}*/
-		convertFunction = (code, options) => [defaultProcess(code), null];
+		convertFunction = (code, options) => [defaultProcess(code, existingFiles), null];
 
 
 		try{
@@ -159,6 +160,6 @@ async function convertFile(task){
 	}
 }
 
-parentPort.on('message', async (task) => {
-    parentPort.postMessage(await convertFile(task));
+parentPort.on('message', async (task, existingFiles) => {
+	parentPort.postMessage(await convertFile(task, existingFiles));
 });

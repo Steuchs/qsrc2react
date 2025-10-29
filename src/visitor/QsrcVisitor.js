@@ -85,6 +85,7 @@ export default class QsrcVisitor extends qsrcParserVisitor{
             else if (ctx.gosub()) result = [`{type: "GS", p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.gosub().functionArguments())}]}`];
             else if (ctx.gt()) result = [`{ type: "GT", p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.gt().functionArguments())}]}`];
             else if (ctx.xgt()) result = [`{ type: "GT",x:true, p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.xgt().functionArguments())}]}`];
+            //else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
             else if(ctx.jump()) result = this.visitJump(ctx.jump());
             else if(ctx.jumpmarker()) result = this.visitJumpmarker(ctx.jumpmarker());
             else if(ctx.killvar()) result = this.visitKillvar(ctx.killvar());
@@ -102,6 +103,7 @@ export default class QsrcVisitor extends qsrcParserVisitor{
 
             return result;
         }catch(e){
+            console.error("Strange ERROR");
             return [`{ERROR: ${e}}`];
         }
 
@@ -202,6 +204,8 @@ export default class QsrcVisitor extends qsrcParserVisitor{
     }
 
     visitFunctionWithStringReturn(ctx){
+        if(ctx.inp())
+            return `_func.input(${ this.visitSum(ctx.inp().sum()) })`;
         return `${ctx.WORD().getText().toLowerCase()}(${this.visitFunctionArguments(ctx.functionArguments())})`;
     }
 
@@ -614,7 +618,7 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
         if(ctx.ParenthesisLeft()) return `(${this.visitValue(ctx.value(0))})`;
         if(ctx.numberLiteralWithOptionalSign()) return this.visitNumberLiteralWithOptionalSign(ctx.numberLiteralWithOptionalSign());
         if(ctx.identifierNumber()) return this.visitIdentifierNumber(ctx.identifierNumber());
-        if(ctx.INPUT()) return `(prompt(${this.visitValue(ctx.value(0))}) ?? "")`
+        //if (ctx.INPUT()) return `_func.prompt(${this.visitValue(ctx.value(0))})`
         if(ctx.invert()) return `_func.logic_not(${this.visitValue(ctx.value(0))})`;
         if(ctx.functionWithNumberReturn()) return this.visitFunctionWithNumberReturn(ctx.functionWithNumberReturn());
         //if(ctx.compareOperator()) return `${this.visitValue(ctx.value(0))} ${this.visitCompareOperator(ctx.compareOperator())} ${this.visitValue(ctx.value(1))}`;

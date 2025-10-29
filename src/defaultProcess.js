@@ -16,7 +16,7 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     twineCode = twineCode.replace(inlineLinkRegexEmergency, '<a data-code="$1">$2</a>');
 
     //Default
-    for (const funcName of ["iif", "instr", "isnum", "lcase", "len", "loc", "max", "mid", "min", "rand", "replace", "rgb", "str","strpos", "trim", "ucase", "val"]) {
+    for (const funcName of ["iif","input", "instr", "isnum", "lcase", "len", "loc", "max", "mid", "min", "rand", "replace", "rgb", "str","strpos", "trim", "ucase", "val"]) {
         const regex = new RegExp(`(?<!_func\\.|\\w)(${funcName})\\(`, 'g');
         twineCode = twineCode.replace(regex, "_func.$1(");
     }
@@ -67,7 +67,7 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     return twineCode;
 }
 
-export default function defaultProcess(code){
+export default function defaultProcess(code, existingFiles){
 
     
     var twineCode = qsrc2tw(code, true);
@@ -105,8 +105,11 @@ export default function defaultProcess(code){
             if(title == fname)
                 return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>["SELF",[${remainingArguments}]]},`;    
 
-
             const codeName = `code_${capitalize(fname)}`;
+
+            const fileNameToLookUp = _title.slice(1, -1).toLowerCase();
+            if (!existingFiles.includes(fileNameToLookUp))
+                return `{ type: "E", exec: async(_$args, _args, _QSP, _func)=>console.warn("File does not exist: ${fileNameToLookUp} ${existingFiles.slice(0,3).join("###")}")},`; 
 
             imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
             return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>[${codeName},[${remainingArguments}]]},`;                

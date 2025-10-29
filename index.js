@@ -69,7 +69,7 @@ const pool = new WorkerPool(os.availableParallelism());
 
 let percentageDisplayed = 0;
 
-
+const existingFiles = filePaths.map((p) =>baseFileName(p).split(".")[0].replaceAll("$", "_").toLowerCase())
 let finished = 0;
 const promises = [];
 for (let filePath of filePaths) {
@@ -80,6 +80,7 @@ for (let filePath of filePaths) {
             outPath: outPath,
             generatedFilesPrefix: generatedFilesPrefix,
             options: options,
+            existingFiles: existingFiles
         }, (err, result) => {
             const wasSuccessful = (result?.[0] === 0);
             const message = result?.[1] ?? '';
@@ -182,7 +183,7 @@ const executionTimeString = `${Math.floor(executionTime/3600000).toString().padS
 console.log('ENDED CONVERSION'.padEnd(30,'.')+ ' '+executionTimeString+` (${filePaths.length-failedFiles.length} of ${filePaths.length} successful)`);
 
 //https://stackoverflow.com/a/25221100/7200161
-function baseFileName(fullpath){
+export function baseFileName(fullpath){
     return fullpath.split('\\').pop().split('/').pop();
 }
 

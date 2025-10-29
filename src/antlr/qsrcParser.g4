@@ -98,6 +98,7 @@ gosub: GOSUB functionArguments;
 gt: GOTO functionArguments;
 xgt: XGOTO functionArguments;
 
+inp: INPUT sum;
 
 jump: JUMP value;
 jumpmarker: DPOINT WORD;
@@ -175,7 +176,6 @@ factor:
 	ParenthesisLeft value ParenthesisRight	
 	| numberLiteralWithOptionalSign			
 	| identifierNumber						
-	| INPUT value 
 	| invert value
 	| functionWithNumberReturn	
 	| escapedString							
@@ -193,7 +193,7 @@ invert: INVERT;
 numberOperator: NEWLINE* (PLUS | MINUS | STAR | MOD | DIVIDE | AND | OR);
 
 
-functionWithStringReturn: DOLLAR WORD ParenthesisLeft functionArguments ParenthesisRight;
+functionWithStringReturn: (DOLLAR WORD ParenthesisLeft functionArguments ParenthesisRight) | inp;
 functionArguments: value (Comma value)*;
 
 escapedString:

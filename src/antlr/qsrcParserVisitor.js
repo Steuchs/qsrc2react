@@ -168,6 +168,12 @@ export default class qsrcParserVisitor extends antlr4.tree.ParseTreeVisitor {
 	}
 
 
+	// Visit a parse tree produced by qsrcParser#inp.
+	visitInp(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
 	// Visit a parse tree produced by qsrcParser#jump.
 	visitJump(ctx) {
 	  return this.visitChildren(ctx);
