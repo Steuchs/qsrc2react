@@ -302,12 +302,21 @@ export default class qsrcParserListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
-	// Enter a parse tree produced by qsrcParser#innerMultilineBlock.
-	enterInnerMultilineBlock(ctx) {
+	// Enter a parse tree produced by qsrcParser#multilineContents.
+	enterMultilineContents(ctx) {
 	}
 
-	// Exit a parse tree produced by qsrcParser#innerMultilineBlock.
-	exitInnerMultilineBlock(ctx) {
+	// Exit a parse tree produced by qsrcParser#multilineContents.
+	exitMultilineContents(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#multilineBlockTemplateVar.
+	enterMultilineBlockTemplateVar(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#multilineBlockTemplateVar.
+	exitMultilineBlockTemplateVar(ctx) {
 	}
 
 

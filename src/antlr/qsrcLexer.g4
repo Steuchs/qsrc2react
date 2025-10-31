@@ -313,6 +313,9 @@ BRACK_OPEN_INSIDE:
 	'{' -> type(BRACK_OPEN), pushMode(MultiLine);
 BRACK_CLOSE: '}' -> popMode;
 
+MultilineTemplateStringStartExpression:
+	'<<' {this.ProcessTemplateOpen();} -> pushMode(DEFAULT_MODE);
+
 AnythingElseInMultiLine: .;
 
 mode COMMENT;

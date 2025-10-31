@@ -106,10 +106,13 @@ jumpmarker: DPOINT WORD;
 killvar: KILLVAR (value (Comma value)?)?;
 msg: MSG value;
 multilineBlock:
-	BRACK_OPEN AnythingElseInMultiLine* innerMultilineBlock? BRACK_CLOSE;
+	BRACK_OPEN (multilineContents*) BRACK_CLOSE;
 
-innerMultilineBlock: multilineBlock AnythingElseInMultiLine*;
-	
+multilineContents: AnythingElseInMultiLine | multilineBlockTemplateVar;
+
+multilineBlockTemplateVar:
+	MultilineTemplateStringStartExpression value TemplateStringEndExpression;
+
 opengame: OPENGAME value?;
 
 play: PLAY functionArguments;

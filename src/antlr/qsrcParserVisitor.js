@@ -204,8 +204,14 @@ export default class qsrcParserVisitor extends antlr4.tree.ParseTreeVisitor {
 	}
 
 
-	// Visit a parse tree produced by qsrcParser#innerMultilineBlock.
-	visitInnerMultilineBlock(ctx) {
+	// Visit a parse tree produced by qsrcParser#multilineContents.
+	visitMultilineContents(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#multilineBlockTemplateVar.
+	visitMultilineBlockTemplateVar(ctx) {
 	  return this.visitChildren(ctx);
 	}
 

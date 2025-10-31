@@ -35,6 +35,7 @@ export default class QsrcVisitor extends qsrcParserVisitor{
     visitAssignmentString(ctx){
         if(ctx.value())
             return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>${this.visitIdentifierString(ctx.identifierString())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${this.visitValue(ctx.value())}}`];
+        //Below might not get executed because multiblock is a valid factor inside value
         var assignmentValue = ctx.multilineBlock().getText().trim().slice(1,-1).replaceAll(/(\r? \n)|\n/gi,'###NL###');
         return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>${this.visitIdentifierString(ctx.identifierString())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${assignmentValue}}`];
     }
@@ -642,7 +643,29 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
         if(ctx.identifierString()) return this.visitIdentifierString(ctx.identifierString());
 
         if(ctx.functionWithStringReturn()) return this.visitFunctionWithStringReturn(ctx.functionWithStringReturn());
-        if(ctx.multilineBlock()) return "`"+ctx.multilineBlock().getText().trim().slice(1,-1).replaceAll(/(\r? \n)|\n/gi,'###NL###').replace(/(\r\n|\n|\r)/gm, "")+"`";
+        if (ctx.multilineBlock()) return this.visitMultilineBlock(ctx.multilineBlock());
         if(ctx.MINUS()) return `-${this.visitValue(ctx.value(0))}`;
     }
+
+    visitMultilineBlock(ctx){
+        //return "`" + ctx.multilineBlock().getText().trim().slice(1, -1).replaceAll(/(\r? \n)|\n/gi, '###NL###').replace(/(\r\n|\n|\r)/gm, "") + "`";
+        var output = "`+++";
+        for (let i = 0; ctx.multilineContents(i) != null; i++) {
+            output += this.visitMultilineContents(ctx.multilineContents(i));
+        }
+        output+= "`";
+        return output;
+    }
+
+    visitMultilineContents(ctx){
+        if (ctx.multilineBlockTemplateVar())
+            return this.visitMultilineBlockTemplateVar(ctx.multilineBlockTemplateVar());
+        return ctx.getText();
+    }
+
+    visitMultilineBlockTemplateVar(ctx){
+        return "\\${"+this.visitValue(ctx.value())+"}";
+    }
 }
+
+

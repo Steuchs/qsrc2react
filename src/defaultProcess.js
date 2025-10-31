@@ -27,7 +27,7 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     }
     //With QSP and async
     for (const funcName of ["dyneval", "func"]) {
-        const regex = new RegExp(`(?<!_func\\.|\\w)(${funcName})\\(`, 'g');
+        const regex = new RegExp(`(?<!_func\\.|\\w)\\$?(${funcName})\\(`, 'g');
         twineCode = twineCode.replace(regex, "await _func.$1(_QSP,");
     }
 

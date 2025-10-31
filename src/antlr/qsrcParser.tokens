@@ -78,8 +78,9 @@ DQTemplateStringStartExpression=77
 DQStringAtom=78
 InEscapedStringAtom=79
 BRACK_CLOSE=80
-AnythingElseInMultiLine=81
-InComment=82
+MultilineTemplateStringStartExpression=81
+AnythingElseInMultiLine=82
+InComment=83
 '&'=32
 '='=35
 '+='=36
