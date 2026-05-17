@@ -116,7 +116,7 @@ async function convertFile(task){
 				[twineCodeRaw,tsCodeRaw] = convertFunction(data,convertModeOptions);
 			}
 			catch(e){
-				throw new Error(`ConvertFunction-Error: ${e.message}`);
+				throw e;//new Error(`ConvertFunction-Error: ${e.message}`);
 			}
 			finally{
 				console = defaultConsole;

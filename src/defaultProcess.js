@@ -75,6 +75,7 @@ export default function defaultProcess(code, existingFiles){
     
 
     twineCode = postProcessCode(twineCode);
+    //console.log(twineCode);
     
     const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -86,7 +87,7 @@ export default function defaultProcess(code, existingFiles){
         var title = matches[0][1];
     }
     catch(e){
-        throw new Error("TITLE NOT FOUND");
+        throw e//new Error(e.message);
     }
 
 
@@ -99,21 +100,48 @@ export default function defaultProcess(code, existingFiles){
                 return a;
             });*/
             const fname = _title.slice(1, -1).replaceAll("$", "_").toLowerCase();
-            
+            const fileNameToLookUp = _title.slice(1, -1).toLowerCase();
             const remainingArguments = _arguments.split(",").map((arg)=>arg.trim()).filter((arg)=>!!arg);
 
-            if(title == fname)
+            if (title == fileNameToLookUp)
                 return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>["SELF",[${remainingArguments}]]},`;    
 
             const codeName = `code_${capitalize(fname)}`;
 
-            const fileNameToLookUp = _title.slice(1, -1).toLowerCase();
+            
             if (!existingFiles.includes(fileNameToLookUp))
-                return `{ type: "E", exec: async(_$args, _args, _QSP, _func)=>console.warn("File does not exist: ${fileNameToLookUp} ${existingFiles.slice(0,3).join("###")}")},`; 
+                return `{ type: "E", exec: async(_$args, _args, _QSP, _func)=>console.warn("File does not exist: ${fileNameToLookUp},${title},${fname}")},`; 
 
             imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
             return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>[${codeName},[${remainingArguments}]]},`;                
             
+        }
+    );
+
+    twineCode = twineCode.replace(
+        /_func\.gs\((.*?)\);/g,
+        (_, _titleAndArguments) => {
+            const argumentsSplit = _titleAndArguments.split(",").map((a)=>{
+                a = a.trim();
+                return a;
+            });
+            const _title = argumentsSplit[0];
+            const fname = _title.slice(1, -1).replaceAll("$", "_").toLowerCase();
+            const fileNameToLookUp = _title.slice(1, -1).toLowerCase();
+            const remainingArguments = argumentsSplit.slice(1).map((arg) => arg.trim()).filter((arg) => !!arg);
+
+            if (title == fileNameToLookUp)
+                return `await CodeExecute([${ remainingArguments }],code,_QSP)`;
+
+            const codeName = `code_${capitalize(fname)}`;
+
+
+            if (!existingFiles.includes(fileNameToLookUp))
+                return `console.warn("File does not exist: ${fileNameToLookUp},${_title},${fname}");`;
+
+            imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
+            return `await CodeExecute([${remainingArguments}],${codeName},_QSP)`;
+
         }
     );
 

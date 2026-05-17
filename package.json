@@ -1,6 +1,6 @@
 {
   "name": "@steuchs/qsrc2react",
-  "version": "0.0.16",
+  "version": "0.2.13",
   "description": "Experimental prototype for covererting qsrc-code to react-code. Do not use unless explicitly told to do so by the author!",
   "main": "index.js",
   "exports":{
@@ -10,6 +10,15 @@
       "import": "./exports/qsrc2react.mjs"
     }
   },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "index.js",
+    "task_processor.js",
+    "worker_pool.js",
+    "src",
+    "exports"
+  ],
   "dependencies": {
     "antlr4": "^4.13.1-patch-1",
     "commander": "^12.1.0",
@@ -27,7 +36,9 @@
   "scripts": {
     "build": "webpack ./webpack.config.cjs",
     "pack": "npx esbuild src/webshell.js --bundle --platform=browser --format=esm --outfile=exports/qsrc2react.mjs --minify --external:react",
-    "test": "jest"
+    "test": "jest",
+    "transpile": "node index.js -in \"./tests/locations/\" -out \"./tests/results/\" -ve -fo" ,
+    "pub": "npm run pack & npm run build & npm publish"
   },
   "author": "Stephan Fuchs",
   "license": "GPLv3",

@@ -1,11 +1,12 @@
 import antlr4 from 'antlr4';
 import qsrcLexer from './antlr/qsrcLexer.js';
 import qsrcParser from './antlr/qsrcParser.js';
-import QsrcVisitor from "./visitor/QsrcVisitor.js";
+import QsrcVisitorFast from "./visitor/QsrcVisitorFast.js";
+import QsrcVisitorStable from "./visitor/QsrcVisitorStable.js";
 import Listener from './listener/Listener.js';
 
 
-export default function qsrc2tw(input, isPassage = false, asCommandArray = false){
+export default function qsrc2tw(input, isPassage = false, asCommandArray = false, preferStable=false){
     //const input = qspString+"\r";
 	if(!isPassage)
     	input = "# SINGLELINECOMMAND\n"+input+"\n--- SINGLELINECOMMAND ---------------------------------\n";
@@ -40,11 +41,21 @@ export default function qsrc2tw(input, isPassage = false, asCommandArray = false
 
 	var output;
 	try {
-		output = new QsrcVisitor().visitPassage(tree, isPassage, asCommandArray);
+		if(!preferStable)
+		{
+			try {
+				output = new QsrcVisitorFast().visitPassage(tree, isPassage, asCommandArray);
+				return output;
+			}catch(e){
+				if (e.message != "JUMP" && e.message != "JUMP MARKER")
+					throw e;
+			}
+		}
+		output = new QsrcVisitorStable().visitPassage(tree, isPassage, asCommandArray);
+		return output;
 	} catch (e) {
 		throw new Error(`Visitor Error: ${e.message}`);
 	}
 
-    return output;
 }
 
