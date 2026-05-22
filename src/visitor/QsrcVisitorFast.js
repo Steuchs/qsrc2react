@@ -8,7 +8,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         var label = this.visitValue(ctx.value());
         const innerCode = this.visitBlock(ctx.block(), indent + 1);
         return [
-            `${"\t".repeat(indent)}_func.act(${label},async(_$args:any,_args:any,_QSP:any,_func:any)=>{`,
+            `${"\t".repeat(indent)}_func.act(${label},_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
             ...innerCode,
             `${"\t".repeat(indent) }});`
         ];
@@ -304,7 +304,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             if (ctx.actInline()){
                 const innerCode = this.visitCommand(ctx.actInline().command(), indent+1);
                 return [
-                    `${"\t".repeat(indent)}_func.act(${this.visitValue(ctx.actInline().value()) },async(_$args:any,_args:any,_QSP:any,_func:any)=>{`,
+                    `${"\t".repeat(indent)}_func.act(${this.visitValue(ctx.actInline().value()) },_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
                     ...innerCode,
                     `${"\t".repeat(indent)}});`
                 ];
@@ -320,9 +320,12 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             else if (ctx.copyarr()) result = [`_func.copyarr(_QSP, ${this.visitFunctionArguments(ctx.copyarr().functionArguments())});`];
             else if (ctx.delact()) result = [`_func.delact(${this.visitValue(ctx.delact().value())});`];
             else if(ctx.dynamic()) result = this.visitDynamic(ctx.dynamic());
-            else if (ctx.gosub()) result = [`_func.gs(${this.visitFunctionArguments(ctx.gosub().functionArguments())});`];
+            else if (ctx.gosub()){
+                
+                result = this.visitGoSub(ctx.gosub());
+            }
             else if (ctx.gt()) result = [`return _func.gt(${this.visitFunctionArguments(ctx.gt().functionArguments())});`];
-            else if (ctx.xgt()) result = [`return _func.gt(${this.visitFunctionArguments(ctx.xgt().functionArguments())},{xgt:true});`];
+            else if (ctx.xgt()) result = [`return _func.xgt(${this.visitFunctionArguments(ctx.xgt().functionArguments())});`];
             //else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
             else if (ctx.jump()) throw new Error("JUMP"); //result = this.visitJump(ctx.jump());
             else if (ctx.jumpmarker()) throw new Error("JUMP MARKER"); // result = this.visitJumpmarker(ctx.jumpmarker());
@@ -362,7 +365,10 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
     }
 
     visitDynamic(ctx) {
-        return [`await _func.dynamic(${this.visitFunctionArguments(ctx.functionArguments())});`];
+        const argumentsRaw = this.visitFunctionArguments(ctx.functionArguments()).split(","); //we need raw, because the commas could be inside the code
+        //const code = argumentsRaw[0];
+        //const args = argumentsRaw.slice(1);
+        return [`await _func.dynamic(_QSP,${argumentsRaw});`];
     }
 
     visitEscapedString(ctx,{inPrintContext=false}={}){
@@ -427,7 +433,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         }
 
 
-        return `${stringBoundaries}${result}${stringBoundaries}`.split("\n").map(s=>s.trimEnd()).join("\\\n");
+        return `${stringBoundaries}${result}${stringBoundaries}`.split("\n").map(s=>s.trimEnd()).join("\\\\n");
     }
 
     visitFunctionArguments(ctx){
@@ -435,6 +441,25 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         for(let i = 0; ctx.value(i) != null; i++)
             results.push(this.visitValue(ctx.value(i)));
         return results.join(' , ');
+    }
+
+    visitGoSub(ctx){
+        
+        function isSimplePassageId(passageId){
+            const reg = /^["'\w]+$/g;
+            return reg.test(passageId);
+        }
+
+        var functionArguments = [];
+        const functionArgumentsCtx = ctx.functionArguments();
+        for (let i = 0; functionArgumentsCtx.value(i) != null; i++)
+            functionArguments.push(this.visitValue(functionArgumentsCtx.value(i)));
+
+        
+        if (isSimplePassageId(functionArguments[0].trim()))
+            return [`_func.gs(${functionArguments.join(",")});`];  
+        return [`await _func.gsd(_QSP,${functionArguments.join(",")});`];
+
     }
 
     visitFunctionWithNumberReturn(ctx){
@@ -559,11 +584,11 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
 
 result = `
 //QsrcVisitorFast
-import { CodeExecute } from "../code/code";
+import { CodeExecute, type CodeFunctions } from "../code/code";
 import { QSPStorageContext } from "../storage/QSP";
 import { useContext, useEffect, useRef } from "react";
 
-export const code: ((_$args:any,_args:any,_QSP:any,_func:any)=>Promise<any>) = async function(_$args,_args,_QSP,_func){
+export const code: ((_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions)=>Promise<any>) = async function(_$args,_args,_QSP,_func){
 ${innerCode}
 };
 

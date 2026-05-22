@@ -83,7 +83,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 			else if (ctx.copyarr()) result = [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.copyarr(_QSP, ${this.visitFunctionArguments(ctx.copyarr().functionArguments())})}`];
 			else if (ctx.delact()) result = [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.delact(${this.visitValue(ctx.delact().value())})}`];
 			else if (ctx.dynamic()) result = this.visitDynamic(ctx.dynamic());
-			else if (ctx.gosub()) result = [`{type: "GS", p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.gosub().functionArguments())}]}`];
+			else if (ctx.gosub()) result = this.visitGoSub(ctx.gosub());// result = [`{type: "GS", p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.gosub().functionArguments())}]}`];
 			else if (ctx.gt()) result = [`{ type: "GT", p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.gt().functionArguments())}]}`];
 			else if (ctx.xgt()) result = [`{ type: "GT",x:true, p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.xgt().functionArguments())}]}`];
 			//else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
@@ -205,6 +205,25 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		if (ctx.inp())
 			return `_func.input(${this.visitSum(ctx.inp().sum())})`;
 		return `${ctx.WORD().getText().toLowerCase()}(${this.visitFunctionArguments(ctx.functionArguments())})`;
+	}
+
+	visitGoSub(ctx) {
+
+		function isSimplePassageId(passageId) {
+			const reg = /^["'\w]+$/g;
+			return reg.test(passageId);
+		}
+
+		var functionArguments = [];
+		const functionArgumentsCtx = ctx.functionArguments();
+		for (let i = 0; functionArgumentsCtx.value(i) != null; i++)
+			functionArguments.push(this.visitValue(functionArgumentsCtx.value(i)));
+
+
+		if (isSimplePassageId(functionArguments[0].trim()))
+			return [`{type: "GS", p:async (_$args,_args, _QSP,_func) => [${functionArguments.join(',')}]}`];;
+		return [`{type: "GSD", p:async (_$args,_args, _QSP,_func) => [${functionArguments.join(',')}]}`];;
+
 	}
 
 
@@ -360,7 +379,7 @@ import { useContext, useEffect, useRef } from "react";
 
 
 export const code: ((_$args:any,_args:any,_QSP:any,_func:any)=>Promise<any>) = async function(_$args,_args,_QSP,_func){
-	await CodeExecuteLines(_args, [
+	await CodeExecuteLines({numbers:_args, strings: _$args}, [
 ${innerCode}
 	], _QSP);
 }
