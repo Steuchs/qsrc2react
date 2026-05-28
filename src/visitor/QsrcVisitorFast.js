@@ -489,6 +489,25 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
     visitIfBlock(ctx,indent = 0){
         const ifBlockCondition = this.visitValue(ctx.value());
         const ifBlockCode = this.visitBlock(ctx.block(),indent+1);
+               
+
+        const condistionReg = /_func\.lo_eq\(_QSP\.\$args\[0\],'([a-zA-Z]\w*)'\)/;
+
+
+        const conditionMatch = ifBlockCondition.trim().match(condistionReg);
+        
+        if(conditionMatch !== null && !ctx.elseIfBlock(0) && !ctx.elseBlock()){
+            const functionId = `localFunc_${conditionMatch[1]}`;
+            let result = `
+${"\t".repeat(indent)}async function ${functionId}(_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions){
+${ifBlockCode.join("\n")}
+${"\t".repeat(indent)}}
+${"\t".repeat(indent)}if(${ifBlockCondition})
+${"\t".repeat(indent+1)}await ${functionId}(_$args,_args,_QSP,_func);
+
+`
+            return [result];
+        }
 
         let result = `${"\t".repeat(indent)}if(${ifBlockCondition}){\n${ifBlockCode.join("\n")}\n${"\t".repeat(indent)}}\n`
 
@@ -506,7 +525,6 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         }
 
         return [result];
-
     }
 
     visitIfInline(ctx, indent = 0){
