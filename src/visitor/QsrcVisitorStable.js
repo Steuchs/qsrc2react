@@ -8,7 +8,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		var label = this.visitValue(ctx.value());
 		const innerCode = this.visitBlock(ctx.block(), indent + 1);
 		return [
-			`{type: "A", l: async(_$args,_args,_QSP,_func)=>${label}, jumpOffset: ${innerCode.length + 1}}`,
+			`{type: "A", l: async(_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${label}, jumpOffset: ${innerCode.length + 1}}`,
 			...innerCode,
 		];
 	}
@@ -29,15 +29,15 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 	}
 
 	visitAssignmentNumber(ctx) {
-		return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>${this.visitIdentifierNumber(ctx.identifierNumber())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${this.visitValue(ctx.value())}}`];
+		return [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${this.visitIdentifierNumber(ctx.identifierNumber())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${this.visitValue(ctx.value())}}`];
 	}
 
 	visitAssignmentString(ctx) {
 		if (ctx.value())
-			return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>${this.visitIdentifierString(ctx.identifierString())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${this.visitValue(ctx.value())}}`];
+			return [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${this.visitIdentifierString(ctx.identifierString())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${this.visitValue(ctx.value())}}`];
 		//Below might not get executed because multiblock is a valid factor inside value
 		var assignmentValue = ctx.multilineBlock().getText().trim().slice(1, -1).replaceAll(/(\r? \n)|\n/gi, '###NL###');
-		return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>${this.visitIdentifierString(ctx.identifierString())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${assignmentValue}}`];
+		return [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${this.visitIdentifierString(ctx.identifierString())} ${this.visitAssignmentoperator(ctx.assignmentoperator())} ${assignmentValue}}`];
 	}
 
 	visitAssignmentoperator(ctx) {
@@ -69,7 +69,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 			if (ctx.actInline()) {
 				const innerCode = this.visitCommand(ctx.actInline().command());
 				return [
-					`{ type: "A", l: async (_$args,_args,_QSP,_func)=>${this.visitValue(ctx.actInline().value())}, jumpOffset: ${innerCode.length + 1}}`,
+					`{ type: "A", l: async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${this.visitValue(ctx.actInline().value())}, jumpOffset: ${innerCode.length + 1}}`,
 					...innerCode,
 				];
 			}
@@ -78,26 +78,26 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 
 			var result = [];
 			if (ctx.ParenthesisLeft()) result = `(${this.visitCommand(ctx.command(0))})`;
-			else if (ctx.addobj()) result = [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.addobj(${this.visitValue(ctx.addobj().value())})}`];
+			else if (ctx.addobj()) result = [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.addobj(${this.visitValue(ctx.addobj().value())})}`];
 			else if (ctx.assignment()) result = this.visitAssignment(ctx.assignment());
-			else if (ctx.copyarr()) result = [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.copyarr(_QSP, ${this.visitFunctionArguments(ctx.copyarr().functionArguments())})}`];
-			else if (ctx.delact()) result = [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.delact(${this.visitValue(ctx.delact().value())})}`];
+			else if (ctx.copyarr()) result = [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.copyarr(_QSP, ${this.visitFunctionArguments(ctx.copyarr().functionArguments())})}`];
+			else if (ctx.delact()) result = [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.delact(${this.visitValue(ctx.delact().value())})}`];
 			else if (ctx.dynamic()) result = this.visitDynamic(ctx.dynamic());
 			else if (ctx.gosub()) result = this.visitGoSub(ctx.gosub());// result = [`{type: "GS", p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.gosub().functionArguments())}]}`];
-			else if (ctx.gt()) result = [`{ type: "GT", p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.gt().functionArguments())}]}`];
-			else if (ctx.xgt()) result = [`{ type: "GT",x:true, p:async (_$args,_args, _QSP,_func) => [${this.visitFunctionArguments(ctx.xgt().functionArguments())}]}`];
+			else if (ctx.gt()) result = [`{ type: "GT", p:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions) => [${this.visitFunctionArguments(ctx.gt().functionArguments())}]}`];
+			else if (ctx.xgt()) result = [`{ type: "GT",x:true, p:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions) => [${this.visitFunctionArguments(ctx.xgt().functionArguments())}]}`];
 			//else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
 			else if (ctx.jump()) result = this.visitJump(ctx.jump());
 			else if (ctx.jumpmarker()) result = this.visitJumpmarker(ctx.jumpmarker());
 			else if (ctx.killvar()) result = this.visitKillvar(ctx.killvar());
 			else if (ctx.msg()) result = this.visitMsg(ctx.msg());
-			else if (ctx.play()) result = [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.play(${this.visitFunctionArguments(ctx.play().functionArguments())})}`];
+			else if (ctx.play()) result = [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.play(${this.visitFunctionArguments(ctx.play().functionArguments())})}`];
 			else if (ctx.print()) result = this.visitPrint(ctx.print());
-			else if (ctx.savegame()) result = [`{type:"S", p: async (_$args,_args,_QSP,_func)=>${this.visitValue(ctx.savegame().value())}}`];
+			else if (ctx.savegame()) result = [`{type:"S", p: async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${this.visitValue(ctx.savegame().value())}}`];
 			else if (ctx.syscall()) result = this.visitSyscall(ctx.syscall());
 			else if (ctx.syssetting()) result = this.visitSyssetting(ctx.syssetting());
-			else if (ctx.view()) result = ctx.view().value() ? [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.view(${this.visitValue(ctx.view().value())})}`] : [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.view()}`];
-			else if (ctx.wait()) result = [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.wait(${this.visitValue(ctx.wait().value())})}`];
+			else if (ctx.view()) result = ctx.view().value() ? [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.view(${this.visitValue(ctx.view().value())})}`] : [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.view()}`];
+			else if (ctx.wait()) result = [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.wait(${this.visitValue(ctx.wait().value())})}`];
 
 			for (let i = 0; ctx.commandAppended(i) != null; i++)
 				result.push(...this.visitCommand(ctx.commandAppended(i).command()));
@@ -120,7 +120,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 	}
 
 	visitDynamic(ctx) {
-		return [`{type:"D",c: async (_$args,_args,_QSP,_func)=>[${this.visitFunctionArguments(ctx.functionArguments())}]}`];
+		return [`{type:"D",c: async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>[${this.visitFunctionArguments(ctx.functionArguments())}]}`];
 	}
 
 	visitEscapedString(ctx, { inPrintContext = false } = {}) {
@@ -264,7 +264,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		for (let i = ifBlocks.length - 1; i >= 0; i--) {
 			const [condition, code] = ifBlocks[i];
 			result = [
-				`{type:"I",cond:async (_$args,_args,_QSP,_func)=>${condition}, jumpLine: -1, jumpOffset: ${code.length + 2}}`,
+				`{type:"I",cond:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${condition}, jumpLine: -1, jumpOffset: ${code.length + 2}}`,
 				...code,
 				`{type:"J", jumpLine: -1, jumpOffset: ${result.length + 1}}`,
 				...result,
@@ -305,7 +305,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 			const ifCommands = this.visitCommand(ctx.command(0));
 			const elseCommands = this.visitCommand(ctx.command(1));
 			return [
-				`{type:"I",cond:async (_$args,_args,_QSP,_func)=>${this.visitValue(ctx.value())}, jumpLine: -1, jumpOffset: ${ifCommands.length + 2}}`,
+				`{type:"I",cond:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${this.visitValue(ctx.value())}, jumpLine: -1, jumpOffset: ${ifCommands.length + 2}}`,
 				...ifCommands,
 				`{type:"J", jumpLine: -1, jumpOffset: ${elseCommands.length + 1}}`,
 				...elseCommands,
@@ -314,7 +314,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		}
 		const commandBlock = this.visitCommand(ctx.command(0));
 		return [
-			`{type:"I",cond:async (_$args,_args,_QSP,_func)=>${this.visitValue(ctx.value())}, jumpLine: -1, jumpOffset: ${commandBlock.length + 1}}`,
+			`{type:"I",cond:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>${this.visitValue(ctx.value())}, jumpLine: -1, jumpOffset: ${commandBlock.length + 1}}`,
 			...commandBlock,
 		];
 	}
@@ -328,13 +328,13 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 	}
 
 	visitKillvar(ctx) {
-		if (ctx.value(1)) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.killvar(${this.visitValue(ctx.value(0))},${this.visitValue(ctx.value(1))})}`];
-		if (ctx.value(0)) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.killvar(${this.visitValue(ctx.value(0))})}`];
-		return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.killvar()}`];
+		if (ctx.value(1)) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.killvar(${this.visitValue(ctx.value(0))},${this.visitValue(ctx.value(1))})}`];
+		if (ctx.value(0)) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.killvar(${this.visitValue(ctx.value(0))})}`];
+		return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.killvar()}`];
 	}
 
 	visitMsg(ctx) {
-		return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.msg(${this.visitValue(ctx.value())})}`];
+		return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.msg(${this.visitValue(ctx.value())})}`];
 	}
 
 	visitNumberLiteralWithOptionalSign(ctx) {
@@ -373,12 +373,13 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 
 			result = `
 //QsrcVisitorStable
-import { CodeExecute, CodeExecuteLines } from "../code/code";
+import { CodeExecute, CodeExecuteLines, type CodeFunctions } from "../code/code";
 import { QSPStorageContext } from "../storage/QSP";
 import { useContext, useEffect, useRef } from "react";
+import type { NumberArguments, StringArguments } from "../util/args";
 
 
-export const code: ((_$args:any,_args:any,_QSP:any,_func:any)=>Promise<any>) = async function(_$args,_args,_QSP,_func){
+export const code: ((_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>Promise<any>) = async function(_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions){
 	await CodeExecuteLines({numbers:_args, strings: _$args}, [
 ${innerCode}
 	], _QSP);
@@ -534,16 +535,16 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
 
 	visitPrint(ctx) {
 		if (ctx.printMain()) {
-			if (ctx.printMain().value()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.print(${this.visitValue(ctx.printMain().value(), { inPrintContext: true })})}`];
+			if (ctx.printMain().value()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.print(${this.visitValue(ctx.printMain().value(), { inPrintContext: true })})}`];
 		}
-		if (ctx.printNewlineMain()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.print(${this.visitValue(ctx.printNewlineMain().value(), { inPrintContext: true })}+"<br/>")}`];
-		if (ctx.printNewlinepreMain()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.print("<br/>"+${this.visitValue(ctx.printNewlinepreMain().value(), { inPrintContext: true })})}`];
-		if (ctx.printEmptyLineMain()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.print("<br/>")}`];
+		if (ctx.printNewlineMain()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.print(${this.visitValue(ctx.printNewlineMain().value(), { inPrintContext: true })}+"<br/>")}`];
+		if (ctx.printNewlinepreMain()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.print("<br/>"+${this.visitValue(ctx.printNewlinepreMain().value(), { inPrintContext: true })})}`];
+		if (ctx.printEmptyLineMain()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.print("<br/>")}`];
 
-		if (ctx.printSide()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.printSide(${this.visitValue(ctx.printSide().value(), { inPrintContext: true })})}`];
-		if (ctx.printNewlineSide()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.printSide(${this.visitValue(ctx.printNewlineSide().value(), { inPrintContext: true })}+"<br/>")}`];
-		if (ctx.printNewlinepreSide()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.printSide("<br/>"+${this.visitValue(ctx.printNewlinepreSide().value(), { inPrintContext: true })})}`];
-		if (ctx.printEmptyLineSide()) return [`{type:"E", exec:async (_$args,_args,_QSP,_func)=>_func.printSide("<br/>")}`];
+		if (ctx.printSide()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.printSide(${this.visitValue(ctx.printSide().value(), { inPrintContext: true })})}`];
+		if (ctx.printNewlineSide()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.printSide(${this.visitValue(ctx.printNewlineSide().value(), { inPrintContext: true })}+"<br/>")}`];
+		if (ctx.printNewlinepreSide()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.printSide("<br/>"+${this.visitValue(ctx.printNewlinepreSide().value(), { inPrintContext: true })})}`];
+		if (ctx.printEmptyLineSide()) return [`{type:"E", exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.printSide("<br/>")}`];
 	}
 
 	visitStatementLine(ctx, indent = 0) {
@@ -558,11 +559,11 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
 		const cmd = ctx.getText().replace('*', 'STAR_').toUpperCase().replaceAll(" ", "_");
 		if (cmd == "EXIT")
 			return [`{type:"X"}`];
-		return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.${cmd}(_QSP)}`];
+		return [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.${cmd}(_QSP)}`];
 	}
 
 	visitSyssetting(ctx) {
-		return [`{type:"E",exec:async (_$args,_args,_QSP,_func)=>_func.${ctx.SYSSETTING().getText().toUpperCase()}(${this.visitValue(ctx.value())})}`];
+		return [`{type:"E",exec:async (_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>_func.${ctx.SYSSETTING().getText().toUpperCase()}(${this.visitValue(ctx.value())})}`];
 	}
 
 	visitLogicOp(ctx) {
@@ -673,8 +674,8 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
 	}
 
 	visitMultilineContents(ctx) {
-		if (ctx.multilineBlockTemplateVar())
-			return this.visitMultilineBlockTemplateVar(ctx.multilineBlockTemplateVar());
+		//if (ctx.multilineBlockTemplateVar())
+		//	return this.visitMultilineBlockTemplateVar(ctx.multilineBlockTemplateVar());
 		return ctx.getText();
 	}
 

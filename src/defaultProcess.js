@@ -104,16 +104,16 @@ export default function defaultProcess(code, existingFiles){
             const remainingArguments = _arguments.split(",").map((arg)=>arg.trim()).filter((arg)=>!!arg);
 
             if (title == fileNameToLookUp)
-                return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>["SELF",[${remainingArguments}]]},`;    
+                return `{ type: "C", c: async(_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>["SELF",[${remainingArguments}]]},`;    
 
             const codeName = `code_${capitalize(fname)}`;
 
             
             if (!existingFiles.includes(fileNameToLookUp))
-                return `{ type: "E", exec: async(_$args, _args, _QSP, _func)=>console.warn("File does not exist: ${fileNameToLookUp},${title},${fname}")},`; 
+                return `{ type: "E", exec: async(_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>console.warn("File does not exist: ${fileNameToLookUp},${title},${fname}")},`; 
 
             imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
-            return `{ type: "C", c: async(_$args, _args, _QSP, _func)=>[${codeName},[${remainingArguments}]]},`;                
+            return `{ type: "C", c: async(_$args:StringArguments,_args:NumberArguments,_QSP:Record<string, any>,_func:CodeFunctions)=>[${codeName},[${remainingArguments}]]},`;                
             
         }
     );

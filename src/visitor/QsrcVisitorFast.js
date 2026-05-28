@@ -754,8 +754,8 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
     }
 
     visitMultilineContents(ctx){
-        if (ctx.multilineBlockTemplateVar())
-            return this.visitMultilineBlockTemplateVar(ctx.multilineBlockTemplateVar());
+        //if (ctx.multilineBlockTemplateVar())
+        //    return this.visitMultilineBlockTemplateVar(ctx.multilineBlockTemplateVar());
         return ctx.getText();
     }
 
