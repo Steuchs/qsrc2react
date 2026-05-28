@@ -4,7 +4,7 @@ import qsrc2tw from './qsrc2tw.js';
 
 export default function translate(codeRaw){
 
-    const codeFromSimpleTranslation = qsrc2tw(codeRaw, false, true, true);
+    const codeFromSimpleTranslation = qsrc2tw(codeRaw, false, true, true, "JS");
 
     const code = postProcessCode(codeFromSimpleTranslation.join("\n"),false).split("\n");
     return code;

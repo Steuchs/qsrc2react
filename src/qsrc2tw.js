@@ -6,7 +6,7 @@ import QsrcVisitorStable from "./visitor/QsrcVisitorStable.js";
 import Listener from './listener/Listener.js';
 
 
-export default function qsrc2tw(input, isPassage = false, asCommandArray = false, preferStable=false){
+export default function qsrc2tw(input, isPassage = false, asCommandArray = false, preferStable=false, language="TS"){
     //const input = qspString+"\r";
 	if(!isPassage)
     	input = "# SINGLELINECOMMAND\n"+input+"\n--- SINGLELINECOMMAND ---------------------------------\n";
@@ -51,7 +51,7 @@ export default function qsrc2tw(input, isPassage = false, asCommandArray = false
 					throw e;
 			}
 		}
-		output = new QsrcVisitorStable().visitPassage(tree, isPassage, asCommandArray);
+		output = new QsrcVisitorStable({language}).visitPassage(tree, isPassage, asCommandArray);
 		return output;
 	} catch (e) {
 		throw new Error(`Visitor Error: ${e.message}`);
