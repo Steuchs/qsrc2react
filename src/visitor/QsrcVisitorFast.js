@@ -491,19 +491,22 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         const ifBlockCode = this.visitBlock(ctx.block(),indent+1);
                
 
-        const condistionReg = /_func\.lo_eq\(_QSP\.\$args\[0\],'([a-zA-Z]\w*)'\)/;
+        const conditionReg = /^_func\.lo_eq\(_QSP\.\$args\[0\],'([a-zA-Z]\w*)'\)$/;
 
 
-        const conditionMatch = ifBlockCondition.trim().match(condistionReg);
+        const conditionMatch = ifBlockCondition.trim().match(conditionReg);
         
         if(conditionMatch !== null && !ctx.elseIfBlock(0) && !ctx.elseBlock()){
+
+            const innerCode = ifBlockCode.join("\n").replaceAll("return;","return 1;");
+
             const functionId = `localFunc_${conditionMatch[1]}`;
             let result = `
-${"\t".repeat(indent)}async function ${functionId}(_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions){
-${ifBlockCode.join("\n")}
+${"\t".repeat(indent)}async function ${functionId}(_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions):Promise<number|void>{
+${innerCode}
 ${"\t".repeat(indent)}}
-${"\t".repeat(indent)}if(${ifBlockCondition})
-${"\t".repeat(indent+1)}await ${functionId}(_$args,_args,_QSP,_func);
+${"\t".repeat(indent)}if((${ifBlockCondition}) && await ${functionId}(_$args,_args,_QSP,_func) === 1)
+${"\t".repeat(indent+1)}return;
 
 `
             return [result];
