@@ -59,3 +59,12 @@ export default function qsrc2tw(input, isPassage = false, asCommandArray = false
 
 }
 
+export function parseStringToContext(s, startRule = 'expression') {
+	const chars = new antlr4.InputStream(s);
+	const lexer = new qsrcLexer(chars);
+	const tokens = new antlr4.CommonTokenStream(lexer);
+	const parser = new qsrcParser(tokens);
+
+	// Gewünschte Startregel aufrufen
+	return parser[startRule](); // z.B. parser.expression()
+}
