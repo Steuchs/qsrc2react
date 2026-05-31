@@ -158,9 +158,20 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 			getTemplateSuffixValue = (ctx, i) => ctx.stringDQTemplateVarSuffix(i).stringTemplateVarDQ().value();
 			stringBoundaries = '"';
 		} else if (ctx.TemplateDoubleSingleQuote(0) != null) {
-			getAtom = (ctx, i) => ctx.InEscapedStringAtom(i);
+			/*getAtom = (ctx, i) => ctx.InEscapedStringAtom(i);
 			getTemplateSuffix = (ctx, i) => null;
-			getTemplateSuffixValue = (ctx, i) => null;
+			getTemplateSuffixValue = (ctx, i) => null;*/
+			for (let i = 0; ctx.escapedStringContent(i) != null; i++) {
+				const content = ctx.escapedStringContent(i);
+				if (content.InEscapedStringAtom() != null) {
+					result += content.InEscapedStringAtom().getText();
+				} else if (content.escapedStringTemplateVar() != null) {
+					const visitedValue = this.visitValue(content.escapedStringTemplateVar().value());
+					result += `'+(${visitedValue})+'`;
+				}
+			}
+			// früher return, bevor die generische Schleife unten läuft
+			return `'${result}'`.split("\n").map(s => s.trimEnd()).join("\\\\n");
 		}
 
 		if (getTemplateSuffix(ctx, 0) != null)
