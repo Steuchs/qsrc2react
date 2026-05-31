@@ -385,9 +385,17 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             getTemplateSuffixValue = (ctx,i)=>ctx.stringDQTemplateVarSuffix(i).stringTemplateVarDQ().value();
             stringBoundaries = '"';
         }else if(ctx.TemplateDoubleSingleQuote(0) != null){
-            getAtom = (ctx,i)=>ctx.InEscapedStringAtom(i);
-            getTemplateSuffix = (ctx,i)=>null;
-            getTemplateSuffixValue = (ctx,i)=>null;
+            for (let i = 0; ctx.escapedStringContent(i) != null; i++) {
+                const content = ctx.escapedStringContent(i);
+                if (content.InEscapedStringAtom() != null) {
+                    result += content.InEscapedStringAtom().getText();
+                } else if (content.escapedStringTemplateVar() != null) {
+                    const visitedValue = this.visitValue(content.escapedStringTemplateVar().value());
+                    result += `'+(${visitedValue})+'`;
+                }
+            }
+            // früher return, bevor die generische Schleife unten läuft
+            return `'${result}'`.split("\n").map(s => s.trimEnd()).join("\\\\n");
         }
 
         if(getTemplateSuffix(ctx,0) != null)
@@ -740,22 +748,6 @@ export default function ${identifier}({_args}:{_args:(string | number)[]}){
         //if (ctx.INPUT()) return `_func.prompt(${this.visitValue(ctx.value(0))})`
         if(ctx.invert()) return `_func.logic_not(${this.visitValue(ctx.value(0))})`;
         if(ctx.functionWithNumberReturn()) return this.visitFunctionWithNumberReturn(ctx.functionWithNumberReturn());
-        //if(ctx.compareOperator()) return `${this.visitValue(ctx.value(0))} ${this.visitCompareOperator(ctx.compareOperator())} ${this.visitValue(ctx.value(1))}`;
-        /*if(ctx.numberOperator()){
-            const left = this.visitValue(ctx.value(0));
-            const right= this.visitValue(ctx.value(1));
-            const op = this.visitNumberOperator(ctx.numberOperator(0));
-            if(op == "/")
-                return `${left} ${op} ${right}`;
-            else if(op == "AND")
-                return `${left} && ${right}`;
-                //return `(setup.logic_and(${left},${right}))`
-            else if(op == "OR")
-                return `${left} || ${right}`;
-                //return `(setup.logic_or(${left},${right}))`
-            else
-                return `${left} ${op} ${right}`;
-        }*/
 
         if(ctx.escapedString()) return this.visitEscapedString(ctx.escapedString(),{inPrintContext: inPrintContext});
         if(ctx.identifierString()) return this.visitIdentifierString(ctx.identifierString());

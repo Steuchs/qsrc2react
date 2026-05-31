@@ -54,7 +54,7 @@ export default function qsrc2tw(input, isPassage = false, asCommandArray = false
 		output = new QsrcVisitorStable({language}).visitPassage(tree, isPassage, asCommandArray);
 		return output;
 	} catch (e) {
-		throw new Error(`Visitor Error: ${e.message}`);
+		throw e;
 	}
 
 }

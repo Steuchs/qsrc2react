@@ -76,11 +76,12 @@ StringAtom=75
 EscapedDoubleQuote=76
 DQTemplateStringStartExpression=77
 DQStringAtom=78
-InEscapedStringAtom=79
-BRACK_CLOSE=80
-MultilineTemplateStringStartExpression=81
-AnythingElseInMultiLine=82
-InComment=83
+EscapedStringTemplateStart=79
+InEscapedStringAtom=80
+BRACK_CLOSE=81
+MultilineTemplateStringStartExpression=82
+AnythingElseInMultiLine=83
+InComment=84
 '&'=32
 '='=35
 '+='=36
@@ -107,4 +108,4 @@ InComment=83
 ','=67
 '?'=68
 '""'=76
-'}'=80
+'}'=81

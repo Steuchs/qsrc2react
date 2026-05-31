@@ -438,6 +438,18 @@ export default class qsrcParserVisitor extends antlr4.tree.ParseTreeVisitor {
 	}
 
 
+	// Visit a parse tree produced by qsrcParser#escapedStringContent.
+	visitEscapedStringContent(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#escapedStringTemplateVar.
+	visitEscapedStringTemplateVar(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
 	// Visit a parse tree produced by qsrcParser#stringAtom.
 	visitStringAtom(ctx) {
 	  return this.visitChildren(ctx);

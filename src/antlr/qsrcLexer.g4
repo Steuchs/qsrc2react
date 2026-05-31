@@ -305,6 +305,9 @@ mode InEscapedString;
 DoubleSINGLEQUOTEINSIDE:
 	'\'\'' -> type(TemplateDoubleSingleQuote), popMode;
 
+EscapedStringTemplateStart:
+	'<<' {this.ProcessTemplateOpen();} -> pushMode(DEFAULT_MODE);
+
 InEscapedStringAtom: .;
 
 mode MultiLine;

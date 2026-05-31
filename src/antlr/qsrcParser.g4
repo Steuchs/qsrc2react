@@ -200,10 +200,16 @@ functionWithStringReturn: (DOLLAR WORD ParenthesisLeft functionArguments Parenth
 functionArguments: value (Comma value)*;
 
 escapedString:
-	TemplateDoubleSingleQuote InEscapedStringAtom* TemplateDoubleSingleQuote 
+	TemplateDoubleSingleQuote escapedStringContent* TemplateDoubleSingleQuote
 	| SINGLEQUOTE stringAtom* stringTemplateVarSuffix* SINGLEQUOTE
-	| DOUBLEQUOTE doubleQuoteAtom* stringDQTemplateVarSuffix* DOUBLEQUOTE
-	 ;
+	| DOUBLEQUOTE doubleQuoteAtom* stringDQTemplateVarSuffix* DOUBLEQUOTE;
+
+escapedStringContent:
+	InEscapedStringAtom
+	| escapedStringTemplateVar;
+
+escapedStringTemplateVar:
+	EscapedStringTemplateStart value TemplateStringEndExpression;
 
 stringAtom: (StringAtom | EscapedSingleQuote);
 stringTemplateVar:

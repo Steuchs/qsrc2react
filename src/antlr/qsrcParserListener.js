@@ -653,6 +653,24 @@ export default class qsrcParserListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by qsrcParser#escapedStringContent.
+	enterEscapedStringContent(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#escapedStringContent.
+	exitEscapedStringContent(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#escapedStringTemplateVar.
+	enterEscapedStringTemplateVar(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#escapedStringTemplateVar.
+	exitEscapedStringTemplateVar(ctx) {
+	}
+
+
 	// Enter a parse tree produced by qsrcParser#stringAtom.
 	enterStringAtom(ctx) {
 	}
