@@ -1,4 +1,5 @@
 import qsrcParserVisitor from "../antlr/qsrcParserVisitor.js";
+import { FunctionNamesAsyncQsp, FunctionNamesDefault, FunctionNamesQsp } from "./FunctionTypes.js";
 
 export default class QsrcVisitor extends qsrcParserVisitor {
 
@@ -229,7 +230,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		return results.join(' , ');
 	}
 
-	visitFunctionWithNumberReturn(ctx) {
+	/*visitFunctionWithNumberReturn(ctx) {
 		return `${ctx.WORD().getText().toLowerCase()}(${this.visitFunctionArguments(ctx.functionArguments())})`;
 	}
 
@@ -237,12 +238,36 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		if (ctx.inp())
 			return `_func.input(${this.visitSum(ctx.inp().sum())})`;
 		return `${ctx.WORD().getText().toLowerCase()}(${this.visitFunctionArguments(ctx.functionArguments())})`;
+	}*/
+
+	visitFunctionWithNumberReturn(ctx){
+		const functionName = ctx.WORD().getText().toLowerCase();
+		const args = this.visitFunctionArguments(ctx.functionArguments());
+		return this.functionWithArguments(functionName, args);
+	}
+
+	visitFunctionWithStringReturn(ctx){
+		if(ctx.inp())
+			return `_func.input(${ this.visitSum(ctx.inp().sum()) })`;
+
+		const functionName = ctx.WORD().getText().toLowerCase();
+		const args = this.visitFunctionArguments(ctx.functionArguments());
+		return this.functionWithArguments(functionName, args);
+	}
+
+	functionWithArguments(functionName, args){
+		if (FunctionNamesDefault.includes(functionName))
+			return `_func.${functionName}(${args})`;
+		if (FunctionNamesQsp.includes(functionName))
+			return `_func.${functionName}(_QSP,${args})`;
+		if (FunctionNamesAsyncQsp.includes(functionName))
+			return `await _func.${functionName}(_QSP,${args})`;
 	}
 
 	visitGoSub(ctx) {
 
 		function isSimplePassageId(passageId) {
-			const reg = /^["'\w]+$/g;
+			const reg = /^["'`]\$?\w+["'`]$/g;
 			return reg.test(passageId);
 		}
 

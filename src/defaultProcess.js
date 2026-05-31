@@ -15,6 +15,7 @@ export function postProcessCode(twineCode,checkLineEndings=true){
     const inlineLinkRegexEmergency = /<a\s+href\s*="exec:(.*?)">(.*?)<\/a>/g;
     twineCode = twineCode.replace(inlineLinkRegexEmergency, '<a data-code="$1">$2</a>');
 
+    /*
     //Default
     for (const funcName of ["iif","input", "instr", "isnum", "lcase", "len", "loc", "max", "mid", "min", "rand", "replace", "rgb", "str","strpos", "trim", "ucase", "val"]) {
         const regex = new RegExp(`(?<!_func\\.|\\w)(${funcName})\\(`, 'g');
@@ -30,6 +31,7 @@ export function postProcessCode(twineCode,checkLineEndings=true){
         const regex = new RegExp(`(?<!_func\\.|\\w)\\$?(${funcName})\\(`, 'g');
         twineCode = twineCode.replace(regex, "await _func.$1(_QSP,");
     }
+    */
 
     //Arrsizes for arguments
     twineCode = twineCode.replace(/_func\.arrsize\(_QSP,'\$args'\)/gi,"_$args.length");
