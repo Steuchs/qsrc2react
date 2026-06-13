@@ -55,39 +55,6 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
     }
 
     visitBlock(ctx,indent = 0){
-        /*let result = [];
-        for(let i = 0; ctx.statementLine(i) != null; i++){
-            result.push(
-                ...this.visitStatementLine(
-                    ctx.statementLine(i),indent
-                )
-            );
-        }
-
-        return result;*/
-
-        /*
-
-
-            // 1. Alle statementLines sammeln
-            const stmts = [];
-            for (let i = 0; ctx.statementLine(i) != null; i++) {
-                stmts.push(ctx.statementLine(i));
-            }
-
-            // 2. Loop-Struktur erkennen und transformieren
-            const transformed = this.detectLoops(stmts);
-
-            // 3. Transformierte Statements emittieren
-            let result = [];
-            for (const item of transformed) {
-                if (item.type === 'while_loop') {
-                    result.push(...this.emitWhileLoop(item, indent));
-                } else {
-                    result.push(...this.visitStatementLine(item.ctx, indent));
-                }
-            }
-            return result;*/
 
         const stmts = [];
         for (let i = 0; ctx.statementLine(i) != null; i++) {
@@ -98,72 +65,153 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         return this.emitLoopBody(transformed, indent); 
         
     }
+    //#region Loop-Detection
+    detectLoops(stmts, enclosingLabels = []) {
+        const n = stmts.length;
 
-    detectLoops(stmts) {
-        const result = [];
+        // Pass 1: Labels in diesem Block
         const labelPositions = new Map();
-
-        for (const stmt of stmts) {
-            const cmdLine = stmt.commandLine?.();
-            const cmd = cmdLine?.command?.();
-
-            // jumpmarker: :label
+        for (let i = 0; i < n; i++) {
+            const cmd = stmts[i].commandLine?.()?.command?.();
             if (cmd?.jumpmarker?.()) {
                 const name = cmd.jumpmarker().WORD().getText().toLowerCase();
-                labelPositions.set(name, result.length);
-                result.push({ type: 'stmt', ctx: stmt });
-                continue;
+                labelPositions.set(name, i);
             }
+        }
 
-            // Fall A: if cond: [cmds &] jump 'label'  → do-while
+        // Pass 2: Loop-Trigger (wie gehabt)
+        const loopMarkers = new Map();
+        for (let i = 0; i < n; i++) {
+            const stmt = stmts[i];
+            const cmd = stmt.commandLine?.()?.command?.();
+
             const ifInline = cmd?.ifInline?.();
             if (ifInline) {
                 const jumpTarget = this.findJumpInIfInline(ifInline);
                 if (jumpTarget && labelPositions.has(jumpTarget)) {
                     const labelIdx = labelPositions.get(jumpTarget);
-                    const body = result.splice(labelIdx);
-                    body.shift(); // Delete Jump-Markers
-                
-                    const preJumpCommands = this.extractPreJumpCommands(ifInline);
-                    
-                    result.push({
-                        type: 'do_while_loop',
-                        condition: ifInline.value(),
-                        preJumpCommands: preJumpCommands,
-                        body,
-                    });
-                    labelPositions.delete(jumpTarget);
-                    continue;
+                    if (labelIdx <= i && !loopMarkers.has(labelIdx)) {
+                        const preJumpCommands = this.extractPreJumpCommands(ifInline);
+                        loopMarkers.set(labelIdx, {
+                            type: 'do_while_loop',
+                            endIdx: i,
+                            condition: ifInline.value(),
+                            preJumpCommands,
+                        });
+                        continue;
+                    }
                 }
             }
 
-            // Fall B: ifBlock dessen letztes Statement ein bedingungsloser jump ist → while
             const ifBlock = stmt.ifBlock?.();
             if (ifBlock && !ifBlock.elseBlock() && ifBlock.elseIfBlock(0) == null) {
                 const jumpTarget = this.findUnconditionalJumpAtEnd(ifBlock.block());
                 if (jumpTarget && labelPositions.has(jumpTarget)) {
                     const labelIdx = labelPositions.get(jumpTarget);
-                    const body = result.splice(labelIdx);
-                    body.shift();
-
-                    // Body ohne den letzten jump
-                    const innerStmts = this.collectStmts(ifBlock.block());
-                    const bodyWithoutJump = innerStmts.slice(0, -1);
-
-                    result.push({
-                        type: 'while_loop',
-                        condition: ifBlock.value(),
-                        body: bodyWithoutJump.map(s => ({ type: 'stmt', ctx: s })),
-                    });
-                    labelPositions.delete(jumpTarget);
-                    continue;
+                    if (labelIdx <= i && !loopMarkers.has(labelIdx)) {
+                        const innerStmts = this.collectStmts(ifBlock.block());
+                        loopMarkers.set(labelIdx, {
+                            type: 'while_loop',
+                            endIdx: i,
+                            condition: ifBlock.value(),
+                            bodyWithoutJump: innerStmts.slice(0, -1),
+                            // NEU: das eigene Label kommt in den Stack für den Body
+                            ownLabel: jumpTarget,
+                        });
+                        continue;
+                    }
                 }
             }
-
-            result.push({ type: 'stmt', ctx: stmt });
         }
 
-        return result;
+        // Pass 3: Ergebnis aufbauen
+        const result = [];
+        let i = 0;
+        while (i < n) {
+            const marker = loopMarkers.get(i);
+            if (marker) {
+                if (marker.type === 'do_while_loop') {
+                    const bodyStmts = stmts.slice(i + 1, marker.endIdx);
+                    result.push({
+                        type: 'do_while_loop',
+                        condition: marker.condition,
+                        preJumpCommands: marker.preJumpCommands,
+                        body: this.detectLoops(bodyStmts, [...enclosingLabels, /* do-while hat kein eigenes Sprungziel-Label im Sinne von continue */]),
+                    });
+                } else {
+                    const newStack = [...enclosingLabels, marker.ownLabel];
+                    result.push({
+                        type: 'while_loop',
+                        condition: marker.condition,
+                        body: this.detectLoops(marker.bodyWithoutJump, newStack),
+                    });
+                }
+                i = marker.endIdx + 1;
+                continue;
+            }
+
+            // NEU: prüfen, ob dieses Statement ein "continue" ist
+            const continueItem = this.tryAsContinue(stmts[i], enclosingLabels);
+            if (continueItem) {
+                result.push(continueItem);
+                i++;
+                continue;
+            }
+
+            result.push({ type: 'stmt', ctx: stmts[i] });
+            i++;
+        }
+
+        return this.resolveForwardSkips(result);
+    }
+
+    emitIfSkip({ condition, body }, indent) {
+        const cond = this.visitValue(condition);
+        const bodyLines = this.emitLoopBody(body, indent + 1);
+        return [
+            `${"\t".repeat(indent)}if (!(${cond})) {`,
+            ...bodyLines,
+            `${"\t".repeat(indent)}}`,
+        ];
+    }
+
+    tryAsContinue(stmt, enclosingLabels) {
+        if (enclosingLabels.length === 0) return null;
+
+        // Fall 1: nacktes "jump 'label'"
+        const cmd = stmt.commandLine?.()?.command?.();
+        if (cmd?.jump?.()) {
+            const target = this.extractJumpTarget(cmd.jump());
+            if (enclosingLabels.includes(target)) {
+                return { type: 'continue' };
+            }
+            return null; // jump auf unbekanntes Label -> später Fehler, aber nicht hier behandeln
+        }
+
+        // Fall 2: ifBlock ohne else/elseif, letztes Statement = jump auf enclosing label
+        const ifBlock = stmt.ifBlock?.();
+        if (ifBlock && !ifBlock.elseBlock() && ifBlock.elseIfBlock(0) == null) {
+            const innerStmts = this.collectStmts(ifBlock.block());
+            if (innerStmts.length === 0) return null;
+
+            const last = innerStmts[innerStmts.length - 1];
+            const lastCmd = last.commandLine?.()?.command?.();
+            if (lastCmd?.jump?.()) {
+                const target = this.extractJumpTarget(lastCmd.jump());
+                if (enclosingLabels.includes(target)) {
+                    const bodyWithoutJump = innerStmts.slice(0, -1);
+                    const body = this.detectLoops(bodyWithoutJump, enclosingLabels);
+                    body.push({ type: 'continue' });
+                    return {
+                        type: 'if_continue',
+                        condition: ifBlock.value(),
+                        body,
+                    };
+                }
+            }
+        }
+
+        return null;
     }
 
     extractJumpTarget(jumpCtx) {
@@ -201,12 +249,28 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                 lines.push(...this.emitWhileLoop(item, indent));
             else if (item.type === 'do_while_loop')
                 lines.push(...this.emitDoWhileLoop(item, indent));
+            else if (item.type === 'continue')
+                lines.push(`${"\t".repeat(indent)}continue;`);
+            else if (item.type === 'if_continue')
+                lines.push(...this.emitIfContinue(item, indent));
+            else if (item.type === 'if_skip')
+                lines.push(...this.emitIfSkip(item, indent));
             else if (item.type === 'stmt' && item.ctx != null)
                 lines.push(...this.visitStatementLine(item.ctx, indent));
             else
                 console.warn('emitLoopBody: unbekanntes item', item);
         }
         return lines;
+    }
+
+    emitIfContinue({ condition, body }, indent) {
+        const cond = this.visitValue(condition);
+        const bodyLines = this.emitLoopBody(body, indent + 1);
+        return [
+            `${"\t".repeat(indent)}if (${cond}) {`,
+            ...bodyLines,
+            `${"\t".repeat(indent)}}`,
+        ];
     }
 
     // Letztes Statement im Block: ist es ein bedingungsloser jump?
@@ -298,7 +362,84 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         return pre;
     }
 
+    // Liefert {condition, target} falls item ein "if cond: jump 'X'" (inline)
+    // oder "if cond: jump 'X' end" (Block mit genau einem Jump-Statement) ist.
+    extractSimpleForwardJump(item) {
+        if (item.type !== 'stmt') return null;
 
+        const cmd = item.ctx.commandLine?.()?.command?.();
+        const ifInline = cmd?.ifInline?.();
+        if (ifInline && !ifInline.ELSE()) {
+            const innerCmd = ifInline.command(0);
+            if (innerCmd?.jump?.() && innerCmd.commandAppended(0) == null) {
+                return {
+                    condition: ifInline.value(),
+                    target: this.extractJumpTarget(innerCmd.jump()),
+                };
+            }
+        }
+
+        const ifBlock = item.ctx.ifBlock?.();
+        if (ifBlock && !ifBlock.elseBlock() && ifBlock.elseIfBlock(0) == null) {
+            const inner = this.collectStmts(ifBlock.block());
+            if (inner.length === 1) {
+                const innerCmd = inner[0].commandLine?.()?.command?.();
+                if (innerCmd?.jump?.() && innerCmd.commandAppended(0) == null) {
+                    return {
+                        condition: ifBlock.value(),
+                        target: this.extractJumpTarget(innerCmd.jump()),
+                    };
+                }
+            }
+        }
+
+        return null;
+    }
+
+    resolveForwardSkips(items) {
+        for (let j = 0; j < items.length; j++) {
+            const fj = this.extractSimpleForwardJump(items[j]);
+            if (!fj) continue;
+
+            const { condition, target } = fj;
+
+            // lokales Label suchen
+            let labelIdx = -1;
+            for (let k = j + 1; k < items.length; k++) {
+                const kItem = items[k];
+                if (kItem.type !== 'stmt') continue;
+                const kcmd = kItem.ctx.commandLine?.()?.command?.();
+                if (kcmd?.jumpmarker?.() &&
+                    kcmd.jumpmarker().WORD().getText().toLowerCase() === target) {
+                    labelIdx = k;
+                    break;
+                }
+            }
+
+            let between, tailStart;
+            if (labelIdx !== -1) {
+                between = items.slice(j + 1, labelIdx);
+                tailStart = labelIdx + 1;
+            } else {
+                between = items.slice(j + 1);
+                tailStart = items.length;
+            }
+
+            const resolvedBetween = this.resolveForwardSkips(between);
+
+            const newItem = {
+                type: 'if_skip',
+                condition,
+                body: resolvedBetween,
+            };
+
+            items = [...items.slice(0, j), newItem, ...items.slice(tailStart)];
+            j--;
+        }
+        return items;
+    }
+
+    //#endregion Loop-Detection
 
     visitCommand(ctx,indent=0){
 
@@ -328,8 +469,8 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             else if (ctx.gt()) result = [`return _func.gt(${this.visitFunctionArguments(ctx.gt().functionArguments())});`];
             else if (ctx.xgt()) result = [`return _func.xgt(${this.visitFunctionArguments(ctx.xgt().functionArguments())});`];
             //else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
-            else if (ctx.jump()) throw new Error("JUMP"); //result = this.visitJump(ctx.jump());
-            else if (ctx.jumpmarker()) throw new Error("JUMP MARKER"); // result = this.visitJumpmarker(ctx.jumpmarker());
+            else if (ctx.jump()) result = ["JUMP:" + ctx.jump().getText()]//throw new Error("JUMP"); //result = this.visitJump(ctx.jump());
+            else if (ctx.jumpmarker()) result = ["JUMP MARKER:"+ctx.jumpmarker().getText()]//throw new Error("JUMP MARKER"); // result = this.visitJumpmarker(ctx.jumpmarker());
             else if(ctx.killvar()) result = this.visitKillvar(ctx.killvar());
             else if(ctx.msg()) result = this.visitMsg(ctx.msg());
             else if (ctx.play()) result = [`_func.play(${this.visitFunctionArguments(ctx.play().functionArguments())});`];
