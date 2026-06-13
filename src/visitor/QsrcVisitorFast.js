@@ -469,8 +469,8 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             else if (ctx.gt()) result = [`return _func.gt(${this.visitFunctionArguments(ctx.gt().functionArguments())});`];
             else if (ctx.xgt()) result = [`return _func.xgt(${this.visitFunctionArguments(ctx.xgt().functionArguments())});`];
             //else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
-            else if (ctx.jump()) result = ["JUMP:" + ctx.jump().getText()]//throw new Error("JUMP"); //result = this.visitJump(ctx.jump());
-            else if (ctx.jumpmarker()) result = ["JUMP MARKER:"+ctx.jumpmarker().getText()]//throw new Error("JUMP MARKER"); // result = this.visitJumpmarker(ctx.jumpmarker());
+            else if (ctx.jump()) throw new Error("JUMP"); //result = this.visitJump(ctx.jump());
+            else if (ctx.jumpmarker()) throw new Error("JUMP MARKER"); // result = this.visitJumpmarker(ctx.jumpmarker());
             else if(ctx.killvar()) result = this.visitKillvar(ctx.killvar());
             else if(ctx.msg()) result = this.visitMsg(ctx.msg());
             else if (ctx.play()) result = [`_func.play(${this.visitFunctionArguments(ctx.play().functionArguments())});`];
