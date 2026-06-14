@@ -54,23 +54,23 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         }
     }
 
-    visitBlock(ctx,indent = 0){
+    // Instanzvariable, oben in der Klasse
+    _enclosingLabels = [];
 
+    visitBlock(ctx, indent = 0) {
         const stmts = [];
         for (let i = 0; ctx.statementLine(i) != null; i++) {
             stmts.push(ctx.statementLine(i));
         }
-
-        const transformed = this.detectLoops(stmts);
-        return this.emitLoopBody(transformed, indent); 
-        
+        const transformed = this.detectLoops(stmts, this._enclosingLabels);
+        return this.emitLoopBody(transformed, indent);
     }
     //#region Loop-Detection
     detectLoops(stmts, enclosingLabels = []) {
         const n = stmts.length;
 
-        // Pass 1: Labels in diesem Block
         const labelPositions = new Map();
+
         for (let i = 0; i < n; i++) {
             const cmd = stmts[i].commandLine?.()?.command?.();
             if (cmd?.jumpmarker?.()) {
@@ -79,9 +79,8 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             }
         }
 
-        // Pass 2: Loop-Trigger (wie gehabt)
         const loopMarkers = new Map();
-        for (let i = 0; i < n; i++) {
+        statementLoop:for (let i = 0; i < n; i++) {
             const stmt = stmts[i];
             const cmd = stmt.commandLine?.()?.command?.();
 
@@ -97,6 +96,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                             endIdx: i,
                             condition: ifInline.value(),
                             preJumpCommands,
+                            ownLabel: jumpTarget,
                         });
                         continue;
                     }
@@ -115,7 +115,57 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                             endIdx: i,
                             condition: ifBlock.value(),
                             bodyWithoutJump: innerStmts.slice(0, -1),
-                            // NEU: das eigene Label kommt in den Stack für den Body
+                            ownLabel: jumpTarget,
+                        });
+                        continue;
+                    }
+                }
+            }
+            else if (ifBlock && !ifBlock.elseBlock() && ifBlock.elseIfBlock(0)){
+                const jumpTargetOfIfBlock = this.findUnconditionalJumpAtEnd(ifBlock.block());
+                if (jumpTargetOfIfBlock && labelPositions.has(jumpTargetOfIfBlock)) {
+                    const labelIdx = labelPositions.get(jumpTargetOfIfBlock);
+                    if (labelIdx <= i && !loopMarkers.has(labelIdx)) {
+
+                        const elseIfBlocks = [];
+
+                        for (let j = 0; ifBlock.elseIfBlock(j) !== null; j++){
+                            const jumpTargetOfElseIfBlock = this.findUnconditionalJumpAtEnd(ifBlock.elseIfBlock(j).block());
+                            if(jumpTargetOfElseIfBlock != jumpTargetOfIfBlock)
+                                continue statementLoop;
+                            const innerStmts = this.collectStmts(ifBlock.elseIfBlock(j).block());
+                            elseIfBlocks.push({
+                                condition: ifBlock.elseIfBlock(j).value(),
+                                bodyWithoutJump: innerStmts.slice(0, -1),
+                            });
+                            
+                        }
+
+
+                        const innerStmts = this.collectStmts(ifBlock.block());
+                        loopMarkers.set(labelIdx, {
+                            type: 'do_while_true_else_break',
+                            endIdx: i,
+                            condition: ifBlock.value(),
+                            bodyWithoutJump: innerStmts.slice(0, -1),
+                            ownLabel: jumpTargetOfIfBlock,
+                            elseIfs: elseIfBlocks,
+                        });
+                        continue;
+                    }
+                }
+            }
+
+
+            if (cmd?.jump?.() && cmd.commandAppended(0) == null) {
+                const jumpTarget = this.extractJumpTarget(cmd.jump());
+                if (labelPositions.has(jumpTarget)) {
+                    const labelIdx = labelPositions.get(jumpTarget);
+                    if (labelIdx <= i && !loopMarkers.has(labelIdx)) {
+                        loopMarkers.set(labelIdx, {
+                            type: 'do_while_unconditional',
+                            endIdx: i,
+                            body: stmts.slice(labelIdx + 1, i),
                             ownLabel: jumpTarget,
                         });
                         continue;
@@ -124,33 +174,48 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             }
         }
 
-        // Pass 3: Ergebnis aufbauen
         const result = [];
         let i = 0;
         while (i < n) {
             const marker = loopMarkers.get(i);
             if (marker) {
+                const newLabels = [...enclosingLabels, marker.ownLabel];
+                const prevEnclosing = this._enclosingLabels;
+                this._enclosingLabels = newLabels;
+
                 if (marker.type === 'do_while_loop') {
                     const bodyStmts = stmts.slice(i + 1, marker.endIdx);
                     result.push({
                         type: 'do_while_loop',
                         condition: marker.condition,
                         preJumpCommands: marker.preJumpCommands,
-                        body: this.detectLoops(bodyStmts, [...enclosingLabels, /* do-while hat kein eigenes Sprungziel-Label im Sinne von continue */]),
+                        body: this.detectLoops(bodyStmts, newLabels),
+                    });
+                } else if (marker.type === 'do_while_unconditional') {
+                    result.push({
+                        type: 'do_while_unconditional',
+                        body: this.detectLoops(marker.body, newLabels),
+                    });
+                } else if (marker.type === 'do_while_true_else_break') {
+                    result.push({
+                        type: 'do_while_true_else_break',
+                        condition: marker.condition,
+                        body: this.detectLoops(marker.bodyWithoutJump, newLabels),
+                        elseIfs: marker.elseIfs.map((ei) => { return { ...ei, body: this.detectLoops(ei.bodyWithoutJump)}}),
                     });
                 } else {
-                    const newStack = [...enclosingLabels, marker.ownLabel];
                     result.push({
                         type: 'while_loop',
                         condition: marker.condition,
-                        body: this.detectLoops(marker.bodyWithoutJump, newStack),
+                        body: this.detectLoops(marker.bodyWithoutJump, newLabels),
                     });
                 }
+
+                this._enclosingLabels = prevEnclosing;
                 i = marker.endIdx + 1;
                 continue;
             }
 
-            // NEU: prüfen, ob dieses Statement ein "continue" ist
             const continueItem = this.tryAsContinue(stmts[i], enclosingLabels);
             if (continueItem) {
                 result.push(continueItem);
@@ -163,6 +228,46 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         }
 
         return this.resolveForwardSkips(result);
+    }
+
+    emitDoWhileUnconditional({ body }, indent) {
+        const bodyLines = this.emitLoopBody(body, indent + 1);
+        return [
+            `${"\t".repeat(indent)}do {`,
+            ...bodyLines,
+            `${"\t".repeat(indent)}} while (true);`,
+        ];
+    }
+
+    emitToWhileTrueElseBreak({ body, condition, elseIfs }, indent){
+        const cond = this.visitValue(condition);
+        const bodyLines = this.emitLoopBody(body, indent + 2);
+        const result = [
+            `${"\t".repeat(indent)}do{`,
+            `${"\t".repeat(indent+1)}if(${cond}){`,
+            ...bodyLines,
+            `${"\t".repeat(indent + 2)}continue;`,
+            `${"\t".repeat(indent + 1)}}`,
+        ];
+
+        for (const { condition, body } of elseIfs){
+            const cond = this.visitValue(condition);
+            const bodyLines = this.emitLoopBody(body, indent + 2);
+            result.push(
+                `${"\t".repeat(indent + 1)}else if(${cond}){`,
+                ...bodyLines,
+                `${"\t".repeat(indent + 2)}continue;`,
+                `${"\t".repeat(indent + 1)}}`
+            );
+        }
+
+        result.push(`${"\t".repeat(indent)}}while(false);`);
+        return result;
+        return [
+            `${"\t".repeat(indent)}if (!(${cond})) {`,
+            ...bodyLines,
+            `${"\t".repeat(indent)}}`,
+        ];
     }
 
     emitIfSkip({ condition, body }, indent) {
@@ -255,6 +360,10 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                 lines.push(...this.emitIfContinue(item, indent));
             else if (item.type === 'if_skip')
                 lines.push(...this.emitIfSkip(item, indent));
+            else if (item.type === 'do_while_unconditional')
+                lines.push(...this.emitDoWhileUnconditional(item, indent));
+            else if (item.type === 'do_while_true_else_break')
+                lines.push(...this.emitToWhileTrueElseBreak(item,indent));
             else if (item.type === 'stmt' && item.ctx != null)
                 lines.push(...this.visitStatementLine(item.ctx, indent));
             else
@@ -273,11 +382,9 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         ];
     }
 
-    // Letztes Statement im Block: ist es ein bedingungsloser jump?
     findUnconditionalJumpAtEnd(blockCtx) {
         const stmts = this.collectStmts(blockCtx);
         if (stmts.length === 0) return null;
-
         const last = stmts[stmts.length - 1];
         const cmd = last.commandLine?.()?.command?.();
         if (cmd?.jump?.()) {
@@ -469,8 +576,8 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             else if (ctx.gt()) result = [`return _func.gt(${this.visitFunctionArguments(ctx.gt().functionArguments())});`];
             else if (ctx.xgt()) result = [`return _func.xgt(${this.visitFunctionArguments(ctx.xgt().functionArguments())});`];
             //else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
-            else if (ctx.jump()) throw new Error("JUMP"); //result = this.visitJump(ctx.jump());
-            else if (ctx.jumpmarker()) throw new Error("JUMP MARKER"); // result = this.visitJumpmarker(ctx.jumpmarker());
+            else if (ctx.jump()) /*result = ["JUMP:" + ctx.jump().getText()]//*/throw new Error("JUMP"); //result = this.visitJump(ctx.jump());
+            else if (ctx.jumpmarker()) /*result = ["JUMPM:" + ctx.jumpmarker().getText()]//*/throw new Error("JUMP MARKER"); // result = this.visitJumpmarker(ctx.jumpmarker());
             else if(ctx.killvar()) result = this.visitKillvar(ctx.killvar());
             else if(ctx.msg()) result = this.visitMsg(ctx.msg());
             else if (ctx.play()) result = [`_func.play(${this.visitFunctionArguments(ctx.play().functionArguments())});`];
