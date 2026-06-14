@@ -1,10 +1,15 @@
-import antlr4 from 'antlr4';
+import antlr4, { ErrorListener } from 'antlr4';
 import qsrcLexer from './antlr/qsrcLexer.js';
 import qsrcParser from './antlr/qsrcParser.js';
 import QsrcVisitorFast from "./visitor/QsrcVisitorFast.js";
 import QsrcVisitorStable from "./visitor/QsrcVisitorStable.js";
 import Listener from './listener/Listener.js';
 
+class ThrowingErrorListener extends ErrorListener {
+	syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
+		throw new Error(`line ${line}:${column} ${msg}`);
+	}
+}
 
 export default function qsrc2tw(input, isPassage = false, asCommandArray = false, preferStable=false, language="TS"){
     //const input = qspString+"\r";
@@ -15,25 +20,19 @@ export default function qsrc2tw(input, isPassage = false, asCommandArray = false
 	const chars = new antlr4.InputStream(input);
 
 	var lexer;
-	try{
-		lexer = new qsrcLexer(chars);
-	} catch (e) {
-		throw new Error(`Lexer Error: ${e.message}`);
-	}
+	lexer = new qsrcLexer(chars);
+	lexer.removeErrorListeners();
+	lexer.addErrorListener(new ThrowingErrorListener());
+
 
 	var tokens;
-	try {
-		tokens = new antlr4.CommonTokenStream(lexer);
-	} catch (e) {
-		throw new Error(`Tokenizer Error: ${e.message}`);
-	} 
+	tokens = new antlr4.CommonTokenStream(lexer);
 
 	var parser;
-	try{
-		parser = new qsrcParser(tokens);
-	}catch(e){
-		throw new Error(`Parser Error: ${e.message}`);
-	}
+	parser = new qsrcParser(tokens);
+	parser.removeErrorListeners();
+	parser.addErrorListener(new ThrowingErrorListener());
+
 	const tree = parser.passage();
 
     const listener = new Listener();
