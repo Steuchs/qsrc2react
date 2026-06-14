@@ -110,6 +110,45 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                     const labelIdx = labelPositions.get(jumpTarget);
                     if (labelIdx <= i && !loopMarkers.has(labelIdx)) {
                         const innerStmts = this.collectStmts(ifBlock.block());
+                        //Hidden ElseIf-Handling
+                        const elseIfBlocks = [];
+                        for(let j = i + 1; j < n; j++){
+                            const stmt = stmts[j];
+                            const cmd = stmt.commandLine?.()?.command?.();
+                            const ifBlock = stmt.ifBlock?.();
+
+                            if (!ifBlock || ifBlock.elseBlock() || ifBlock.elseIfBlock(0) != null)
+                                break;
+                            const nextJumpTarget = this.findUnconditionalJumpAtEnd(ifBlock.block());
+                            if (nextJumpTarget != jumpTarget)
+                                break;
+
+                            const innerStmts = this.collectStmts(ifBlock.block());
+                            elseIfBlocks.push({
+                                condition: ifBlock.value(),
+                                bodyWithoutJump: innerStmts.slice(0, -1),
+                            });
+
+
+                            i++;
+                        }
+
+                        if(elseIfBlocks.length){
+                            loopMarkers.set(labelIdx, {
+                                type: 'do_while_true_else_break',
+                                endIdx: i,
+                                condition: ifBlock.value(),
+                                bodyWithoutJump: innerStmts.slice(0, -1),
+                                ownLabel: jumpTarget,
+                                elseIfs: elseIfBlocks,
+                            });
+                            continue;
+                        }
+
+
+
+
+                        
                         loopMarkers.set(labelIdx, {
                             type: 'while_loop',
                             endIdx: i,
@@ -549,7 +588,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
     //#endregion Loop-Detection
 
     visitCommand(ctx,indent=0){
-
+        const debugMode = false;
             if (ctx.actInline()){
                 const innerCode = this.visitCommand(ctx.actInline().command(), indent+1);
                 return [
