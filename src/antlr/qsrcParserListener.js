@@ -176,6 +176,15 @@ export default class qsrcParserListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by qsrcParser#close.
+	enterClose(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#close.
+	exitClose(ctx) {
+	}
+
+
 	// Enter a parse tree produced by qsrcParser#comment.
 	enterComment(ctx) {
 	}

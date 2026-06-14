@@ -605,6 +605,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             if(ctx.ParenthesisLeft()) result = [`(${this.visitCommand(ctx.command(0))})`];
             else if (ctx.addobj()) result = [`_func.addobj(${this.visitValue(ctx.addobj().value())});`];
             else if(ctx.assignment()) result = this.visitAssignment(ctx.assignment());
+            else if (ctx.close()) result = [`_func.close(${this.visitFunctionArguments(ctx.close().functionArguments())});`];
             else if (ctx.copyarr()) result = [`_func.copyarr(_QSP, ${this.visitFunctionArguments(ctx.copyarr().functionArguments())});`];
             else if (ctx.delact()) result = [`_func.delact(${this.visitValue(ctx.delact().value())});`];
             else if(ctx.dynamic()) result = this.visitDynamic(ctx.dynamic());

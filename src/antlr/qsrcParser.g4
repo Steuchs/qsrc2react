@@ -40,6 +40,7 @@ command:
 			(ParenthesisLeft command ParenthesisRight)
 			| addobj
 			| assignment
+			| close
 			| copyarr 
 			| delact
 			| dynamic
@@ -84,6 +85,8 @@ assignmentoperator:
 	| SetToOperator
 	| MultSelfOperator
 	| DivideSelfOperator;
+
+close: CLOSE functionArguments;
 
 comment: (EXCLAMATIONMARK ~NEWLINE*) | (CommentStart InComment*) | Multilinecomment;
 commentAttached: AttachedComment InComment*;

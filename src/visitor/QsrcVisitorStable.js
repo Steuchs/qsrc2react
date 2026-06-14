@@ -102,6 +102,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 			if (ctx.ParenthesisLeft()) result = `(${this.visitCommand(ctx.command(0))})`;
 			else if (ctx.addobj()) result = [`{type:"E",exec:async (${this.getArguments(["_$args","_args","_QSP","_func"])})=>_func.addobj(${this.visitValue(ctx.addobj().value())})}`];
 			else if (ctx.assignment()) result = this.visitAssignment(ctx.assignment());
+			else if (ctx.close()) result = [`{type:"E",exec:async (${this.getArguments(["_$args", "_args", "_QSP", "_func"])})=>_func.close(${this.visitFunctionArguments(ctx.close().functionArguments())})}`];
 			else if (ctx.copyarr()) result = [`{type:"E",exec:async (${this.getArguments(["_$args","_args","_QSP","_func"])})=>_func.copyarr(_QSP, ${this.visitFunctionArguments(ctx.copyarr().functionArguments())})}`];
 			else if (ctx.delact()) result = [`{type:"E",exec:async (${this.getArguments(["_$args","_args","_QSP","_func"])})=>_func.delact(${this.visitValue(ctx.delact().value())})}`];
 			else if (ctx.dynamic()) result = this.visitDynamic(ctx.dynamic());
