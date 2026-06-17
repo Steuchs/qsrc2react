@@ -613,8 +613,8 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                 
                 result = this.visitGoSub(ctx.gosub());
             }
-            else if (ctx.gt()) result = [`return _func.gt(${this.visitFunctionArguments(ctx.gt().functionArguments())});`];
-            else if (ctx.xgt()) result = [`return _func.xgt(${this.visitFunctionArguments(ctx.xgt().functionArguments())});`];
+            else if (ctx.gt()) result = [`return _func.gt(_game,${this.visitFunctionArguments(ctx.gt().functionArguments())});`];
+            else if (ctx.xgt()) result = [`return _func.xgt(_game,${this.visitFunctionArguments(ctx.xgt().functionArguments())});`];
             //else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
             else if (ctx.jump()){
                 if(debugMode)
@@ -930,20 +930,23 @@ result = `
 import { CodeExecute, type CodeFunctions } from "../code/code";
 import { QSPStorageContext } from "../storage/QSP";
 import { useContext, useEffect, useRef } from "react";
+import type Game from "../game/Game";
+import { GameContext } from "../game/GameContext";
 
-export const code: ((_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions)=>Promise<any>) = async function(_$args,_args,_QSP,_func){
+export const code: ((_game:Game,_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions)=>Promise<any>) = async function(_game,_$args,_args,_QSP,_func){
 ${innerCode}
 };
 
 export default function ${identifier}({_args}:{_args:(string | number)[]}){
-	const QSP = useContext(QSPStorageContext)
+	const QSP = useContext(QSPStorageContext);
+    const game = useContext(GameContext);
 	const mounted = useRef(false);
 
 	useEffect(()=>{
 		if (mounted.current) return;
 		mounted.current = true;
 
-		CodeExecute(_args, code, QSP);
+		CodeExecute(game, _args, code, QSP);
 
 	},[]);
 

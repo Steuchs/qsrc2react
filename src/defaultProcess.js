@@ -133,7 +133,7 @@ export default function defaultProcess(code, existingFiles){
             const remainingArguments = argumentsSplit.slice(1).map((arg) => arg.trim()).filter((arg) => !!arg);
 
             if (title == fileNameToLookUp)
-                return `await CodeExecute([${ remainingArguments }],code,_QSP)`;
+                return `await CodeExecute(_game,[${ remainingArguments }],code,_QSP)`;
 
             const codeName = `code_${capitalize(fname)}`;
 
@@ -142,7 +142,7 @@ export default function defaultProcess(code, existingFiles){
                 return `console.warn("File does not exist: ${fileNameToLookUp},${_title},${fname}");`;
 
             imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
-            return `await CodeExecute([${remainingArguments}],${codeName},_QSP)`;
+            return `await CodeExecute(_game,[${remainingArguments}],${codeName},_QSP)`;
 
         }
     );

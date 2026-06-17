@@ -17,6 +17,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		if(this._language == "JS")
 			return args.join(",");
 		const tsTypes = {
+			"_game":"Game",
 			"_$args":"StringArguments",
 			"_args": "NumberArguments",
 			"_QSP": "Record<string, any>",
@@ -435,23 +436,26 @@ import { CodeExecute, CodeExecuteLines, type CodeFunctions } from "../code/code"
 import { QSPStorageContext } from "../storage/QSP";
 import { useContext, useEffect, useRef } from "react";
 import type { NumberArguments, StringArguments } from "../util/args";
+import type Game from "../game/Game";
+import { GameContext } from "../game/GameContext";
 
 
-export const code: ((${this.getArguments(["_$args","_args","_QSP","_func"])})=>Promise<any>) = async function(${this.getArguments(["_$args","_args","_QSP","_func"])}){
-	await CodeExecuteLines({numbers:_args, strings: _$args}, [
+export const code: ((${this.getArguments(["_game", "_$args", "_args", "_QSP", "_func"])})=>Promise<any>) = async function(${this.getArguments(["_game","_$args","_args","_QSP","_func"])}){
+	await CodeExecuteLines(_game, {numbers:_args, strings: _$args}, [
 ${innerCode}
 	], _QSP);
 }
 
 export default function ${identifier}({_args}${this._language == "JS" ? "" : ":{_args:(string | number)[]}"}){
 	const QSP = useContext(QSPStorageContext)
+	const game = useContext(GameContext);
 	const mounted = useRef(false);
 
 	useEffect(()=>{
 		if (mounted.current) return;
 		mounted.current = true;
 
-		CodeExecute(_args, code, QSP);
+		CodeExecute(game,_args, code, QSP);
 
 	},[]);
 
