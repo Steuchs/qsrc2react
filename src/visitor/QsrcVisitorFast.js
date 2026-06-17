@@ -882,9 +882,9 @@ ${"\t".repeat(indent+1)}return;
     }
 
     visitKillvar(ctx){
-        if (ctx.value(1)) return [`_func.killvar(${this.visitValue(ctx.value(0))},${this.visitValue(ctx.value(1))});`];
-        if (ctx.value(0)) return [`_func.killvar(${this.visitValue(ctx.value(0))});`];
-        return [`_func.killvar();`];
+        if (ctx.value(1)) return [`_func.killvar(_QSP,${this.visitValue(ctx.value(0))},${this.visitValue(ctx.value(1))});`];
+        if (ctx.value(0)) return [`_func.killvar(_QSP,${this.visitValue(ctx.value(0))});`];
+        return [`_func.killvar(_QSP);`];
     }
 
     visitMsg(ctx){
