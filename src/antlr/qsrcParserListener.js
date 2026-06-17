@@ -140,6 +140,15 @@ export default class qsrcParserListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by qsrcParser#addqst.
+	enterAddqst(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#addqst.
+	exitAddqst(ctx) {
+	}
+
+
 	// Enter a parse tree produced by qsrcParser#assignment.
 	enterAssignment(ctx) {
 	}
@@ -254,6 +263,15 @@ export default class qsrcParserListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by qsrcParser#xgt.
 	exitXgt(ctx) {
+	}
+
+
+	// Enter a parse tree produced by qsrcParser#inclib.
+	enterInclib(ctx) {
+	}
+
+	// Exit a parse tree produced by qsrcParser#inclib.
+	exitInclib(ctx) {
 	}
 
 

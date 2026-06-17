@@ -151,6 +151,8 @@ SYSSETTING: (S H O W S T A T)
 
 ADDOBJ: A D D O B J;
 
+ADDQST: A D D Q S T;
+
 CLOSE: C L O S E;
 
 COPYARR: C O P Y A R R;
@@ -160,7 +162,10 @@ DYNAMIC: D Y N A M I C;
 
 GOSUB: (G S) | (G O S U B);
 GOTO: (G T) | (G O T O);
+
 XGOTO: X GOTO;
+
+INCLIB: I N C L I B;
 
 INPUT: '$'? I N P U T;
 
@@ -235,6 +240,7 @@ fragment M: ('M' | 'm');
 fragment N: ('N' | 'n');
 fragment O: ('O' | 'o');
 fragment P: ('P' | 'p');
+fragment Q: ('Q' | 'q');
 fragment R: ('R' | 'r');
 fragment S: ('S' | 's');
 fragment T: ('T' | 't');

@@ -39,6 +39,7 @@ command:
         (
 			(ParenthesisLeft command ParenthesisRight)
 			| addobj
+			| addqst
 			| assignment
 			| close
 			| copyarr 
@@ -47,6 +48,7 @@ command:
 			| gosub
 			| gt
 			| xgt
+			| inclib
 			| jump
 			| jumpmarker
 			| killvar
@@ -70,6 +72,7 @@ commandLine: command commandAppended? commentAttached? NEWLINE;
 commandAppended: CommandConnect CommandConnect? command;
 
 addobj: ADDOBJ value;
+addqst: ADDQST value;
 
 assignment: SET? (assignmentNumber | assignmentString);
 
@@ -100,6 +103,8 @@ dynamic: (DYNAMIC functionArguments)
 gosub: GOSUB functionArguments;
 gt: GOTO functionArguments;
 xgt: XGOTO functionArguments;
+
+inclib: INCLIB value;
 
 inp: INPUT sum;
 

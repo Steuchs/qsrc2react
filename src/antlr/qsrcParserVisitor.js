@@ -96,6 +96,12 @@ export default class qsrcParserVisitor extends antlr4.tree.ParseTreeVisitor {
 	}
 
 
+	// Visit a parse tree produced by qsrcParser#addqst.
+	visitAddqst(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
 	// Visit a parse tree produced by qsrcParser#assignment.
 	visitAssignment(ctx) {
 	  return this.visitChildren(ctx);
@@ -170,6 +176,12 @@ export default class qsrcParserVisitor extends antlr4.tree.ParseTreeVisitor {
 
 	// Visit a parse tree produced by qsrcParser#xgt.
 	visitXgt(ctx) {
+	  return this.visitChildren(ctx);
+	}
+
+
+	// Visit a parse tree produced by qsrcParser#inclib.
+	visitInclib(ctx) {
 	  return this.visitChildren(ctx);
 	}
 
