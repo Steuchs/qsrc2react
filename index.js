@@ -133,17 +133,21 @@ async function makeJunctionFile(targetpath, successFiles){
     
 
 const s = `
-import { lazy, useContext } from 'react';
-import { GameContext } from '../game/GameContext';
+import { lazy } from 'react';
 
 ${imports.join("\n")}
 
-export default function Location({location}:{location:(string|number)[]}){
+export default function Location(
+	{
+		location,
+		renderedHistoryIndex,
+	}:{
+		location:(string|number)[],
+		renderedHistoryIndex: number,
+	}
+){
 	if(!location.length)
 		throw new Error(\`Error in Location.tsx: invalid location - data : '\${JSON.stringify(location)}'\`);
-
-    const game = useContext(GameContext);
-	const renderedHistoryIndex = game.locationRenderIndex;
 
 	const locationId = location[0];
 	const locationArgs = location.length > 1 ? location.slice(1) : [];

@@ -9,7 +9,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         var label = this.visitValue(ctx.value());
         const innerCode = this.visitBlock(ctx.block(), indent + 1);
         return [
-            `${"\t".repeat(indent)}_func.act(${label},_game,_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
+            `${"\t".repeat(indent)}_func.act(${label},_game,_$args,_args,_QSP,_func,async(_game,_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
             ...innerCode,
             `${"\t".repeat(indent) }});`
         ];
@@ -592,7 +592,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             if (ctx.actInline()){
                 const innerCode = this.visitCommand(ctx.actInline().command(), indent+1);
                 return [
-                    `${"\t".repeat(indent)}_func.act(${this.visitValue(ctx.actInline().value()) },_game,_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
+                    `${"\t".repeat(indent)}_func.act(${this.visitValue(ctx.actInline().value()) },_game,_$args,_args,_QSP,_func,async(_game,_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
                     ...innerCode,
                     `${"\t".repeat(indent)}});`
                 ];
@@ -791,7 +791,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         if (FunctionNamesQsp.includes(functionName))
             return `_func.${functionName}(_QSP,${args})`;
         if (FunctionNamesAsyncQsp.includes(functionName))
-            return `await _func.${functionName}(_QSP,${args})`;
+            return `await _func.${functionName}(_game,_QSP,${args})`;
     }
 
 
@@ -824,10 +824,10 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
 
             const functionId = `localFunc_${conditionMatch[1]}`;
             let result = `
-${"\t".repeat(indent)}async function ${functionId}(_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions):Promise<number|void>{
+${"\t".repeat(indent)}async function ${functionId}(_game:Game,_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions):Promise<number|void>{
 ${innerCode}
 ${"\t".repeat(indent)}}
-${"\t".repeat(indent)}if((${ifBlockCondition}) && await ${functionId}(_$args,_args,_QSP,_func) === 1)
+${"\t".repeat(indent)}if((${ifBlockCondition}) && await ${functionId}(_game,_$args,_args,_QSP,_func) === 1)
 ${"\t".repeat(indent+1)}return;
 
 `
