@@ -9,7 +9,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         var label = this.visitValue(ctx.value());
         const innerCode = this.visitBlock(ctx.block(), indent + 1);
         return [
-            `${"\t".repeat(indent)}_func.act(${label},_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
+            `${"\t".repeat(indent)}_func.act(${label},_game,_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
             ...innerCode,
             `${"\t".repeat(indent) }});`
         ];
@@ -592,7 +592,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
             if (ctx.actInline()){
                 const innerCode = this.visitCommand(ctx.actInline().command(), indent+1);
                 return [
-                    `${"\t".repeat(indent)}_func.act(${this.visitValue(ctx.actInline().value()) },_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
+                    `${"\t".repeat(indent)}_func.act(${this.visitValue(ctx.actInline().value()) },_game,_$args,_args,_QSP,_func,async(_$args: string[], _args: number[], _QSP: Record<string, any>, _func: CodeFunctions)=>{`,
                     ...innerCode,
                     `${"\t".repeat(indent)}});`
                 ];

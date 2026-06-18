@@ -127,14 +127,14 @@ async function makeJunctionFile(targetpath, successFiles){
 
     const cases = successFiles.map((fpath) => {
         const fname = path.basename(fpath).split(".")[0];
-        return `\t\tcase "${fname}": locationComponent = <${capitalize(fname)} key={\`${fname}.\${ locationHistory.renderedHistoryIndex }\`} _args={locationArgs}/>; break;`;
+        return `\t\tcase "${fname}": locationComponent = <${capitalize(fname)} key={\`${fname}.\${ renderedHistoryIndex }\`} _args={locationArgs}/>; break;`;
     }).sort();
 
     
 
 const s = `
 import { lazy, useContext } from 'react';
-import { LocationHistoryContext } from '../util/locationHistory';
+import { GameContext } from '../game/GameContext';
 
 ${imports.join("\n")}
 
@@ -142,7 +142,8 @@ export default function Location({location}:{location:(string|number)[]}){
 	if(!location.length)
 		throw new Error(\`Error in Location.tsx: invalid location - data : '\${JSON.stringify(location)}'\`);
 
-    const locationHistory = useContext(LocationHistoryContext);
+    const game = useContext(GameContext);
+	const renderedHistoryIndex = game.locationRenderIndex;
 
 	const locationId = location[0];
 	const locationArgs = location.length > 1 ? location.slice(1) : [];
