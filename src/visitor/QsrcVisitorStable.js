@@ -263,7 +263,7 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 		if (FunctionNamesQsp.includes(functionName))
 			return `_func.${functionName}(_QSP,${args})`;
 		if (FunctionNamesAsyncQsp.includes(functionName))
-			return `await _func.${functionName}(_QSP,${args})`;
+			return `await _func.${functionName}(_game,_QSP,${args})`;
 	}
 
 	visitGoSub(ctx) {
