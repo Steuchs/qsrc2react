@@ -667,7 +667,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         const argumentsRaw = this.visitFunctionArguments(ctx.functionArguments()).split(","); //we need raw, because the commas could be inside the code
         //const code = argumentsRaw[0];
         //const args = argumentsRaw.slice(1);
-        return [`await _func.dynamic(_QSP,${argumentsRaw});`];
+        return [`await _func.dynamic(_game,_QSP,${argumentsRaw});`];
     }
 
     visitEscapedString(ctx,{inPrintContext=false}={}){
@@ -765,7 +765,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         
         if (isSimplePassageId(functionArguments[0].trim()))
             return [`_func.gs(${functionArguments.join(",")});`];  
-        return [`await _func.gsd(_QSP,${functionArguments.join(",")});`];
+        return [`await _func.gsd(_game,_QSP,${functionArguments.join(",")});`];
 
     }
 
