@@ -153,7 +153,10 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                             type: 'while_loop',
                             endIdx: i,
                             condition: ifBlock.value(),
-                            bodyWithoutJump: innerStmts.slice(0, -1),
+                            bodyWithoutJump: [
+                                ...stmts.slice(labelIdx + 1, i),       // <- das fehlt!
+                                ...innerStmts.slice(0, -1),             // <- if-body ohne jump
+                            ],
                             ownLabel: jumpTarget,
                         });
                         continue;
