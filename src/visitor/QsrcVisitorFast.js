@@ -153,10 +153,8 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                             type: 'while_loop',
                             endIdx: i,
                             condition: ifBlock.value(),
-                            bodyWithoutJump: [
-                                ...stmts.slice(labelIdx + 1, i),       // <- das fehlt!
-                                ...innerStmts.slice(0, -1),             // <- if-body ohne jump
-                            ],
+                            preamble: stmts.slice(labelIdx + 1, i),   // ← Assignments separat
+                            bodyWithoutJump: innerStmts.slice(0, -1),
                             ownLabel: jumpTarget,
                         });
                         continue;
@@ -249,6 +247,7 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                     result.push({
                         type: 'while_loop',
                         condition: marker.condition,
+                        preamble: this.detectLoops(marker.preamble ?? [], newLabels),
                         body: this.detectLoops(marker.bodyWithoutJump, newLabels),
                     });
                 }
@@ -367,9 +366,28 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
         return raw.replace(/^['"]|['"]$/g, '').toLowerCase();
     }
 
-    emitWhileLoop({ condition, body }, indent) {
+    emitWhileLoop({ condition, body, preamble = [] }, indent) {
+        /*const cond = this.visitValue(condition);
+        const bodyLines = this.emitLoopBody(body, indent + 1);
+        return [
+            `${"\t".repeat(indent)}while (${cond}) {`,
+            ...bodyLines,
+            `${"\t".repeat(indent)}}`,
+        ];*/
         const cond = this.visitValue(condition);
         const bodyLines = this.emitLoopBody(body, indent + 1);
+
+        if (preamble.length > 0) {
+            const preambleLines = this.emitLoopBody(preamble, indent + 1);
+            return [
+                `${"\t".repeat(indent)}while (true) {`,
+                ...preambleLines,
+                `${"\t".repeat(indent + 1)}if (!(${cond})) break;`,
+                ...bodyLines,
+                `${"\t".repeat(indent)}}`,
+            ];
+        }
+
         return [
             `${"\t".repeat(indent)}while (${cond}) {`,
             ...bodyLines,
