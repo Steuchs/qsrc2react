@@ -944,13 +944,53 @@ ${"\t".repeat(indent+1)}return;
                 return this.visitBlock(ctx.block(), 1).map((cl) => cl.trim());
             const innerCodeRaw = this.visitBlock(ctx.block(), 1);
 
-            const innerCode = innerCodeRaw.join("\n");
+            let innerCode = innerCodeRaw.join("\n");
+
+            const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+            const imports = new Set();
+            innerCode = innerCode.replace(
+                /_func\.gs\((.*?)\);/g,
+                (_, _titleAndArguments) => {
+                    const argumentsSplit = _titleAndArguments.split(",").map((a) => {
+                        a = a.trim();
+                        return a;
+                    });
+                    const _title = argumentsSplit[0];
+                    const fname = _title.slice(1, -1).replaceAll("$", "_").toLowerCase();
+                    const fileNameToLookUp = _title.slice(1, -1).toLowerCase();
+                    const remainingArguments = argumentsSplit.slice(1).map((arg) => arg.trim()).filter((arg) => !!arg);
+
+                    if (identifier == fileNameToLookUp)
+                        return `await CodeExecute(_game,[${remainingArguments}],code,_QSP)`;
+
+                    const codeName = `code_${capitalize(fname)}`;
+
+
+                    //if (!existingFiles.includes(fileNameToLookUp))
+                    //    return `console.warn("File does not exist: ${fileNameToLookUp},${_title},${fname}");`;
+
+                    imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
+                    return `await CodeExecute(_game,[${remainingArguments}],${codeName},_QSP)`;
+
+                }
+            );
+
+
+
+
+
+            const includeCodeExecute = innerCode.includes("CodeExecute") ? ",CodeExecute" : "";
+
+
+
 
 result = `
 //QsrcVisitorFast
-import { type CodeFunctions } from "../code/code";
+import { type CodeFunctions ${includeCodeExecute}} from "../code/code";
 import type Game from "../game/Game";
 import { createQSPComponent } from "../code/createQSPComponent";
+
+${Array.from(imports).sort().join("\n")}
 
 export const code: ((_game:Game,_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions)=>Promise<any>) = async function(_game,_$args,_args,_QSP,_func){
 ${innerCode}

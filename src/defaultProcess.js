@@ -119,7 +119,7 @@ export default function defaultProcess(code, existingFiles){
             
         }
     );
-
+    /*
     twineCode = twineCode.replace(
         /_func\.gs\((.*?)\);/g,
         (_, _titleAndArguments) => {
@@ -146,7 +146,7 @@ export default function defaultProcess(code, existingFiles){
 
         }
     );
-
+    */
 
 
     const twineLines = twineCode.split("\n");
