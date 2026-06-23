@@ -82,7 +82,7 @@ export default function defaultProcess(code, existingFiles){
     const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 
-    const findTitleOfOwnPassageRegex = /return <div id="(.*?)"><\/div>;/g;
+    const findTitleOfOwnPassageRegex = /createQSPComponent\("(.*?)", code\)/g;
     
     try{
         const matches = [...twineCode.matchAll(findTitleOfOwnPassageRegex)];

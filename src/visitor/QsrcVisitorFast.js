@@ -948,31 +948,15 @@ ${"\t".repeat(indent+1)}return;
 
 result = `
 //QsrcVisitorFast
-import { CodeExecute, type CodeFunctions } from "../code/code";
-import { QSPStorageContext } from "../storage/QSP";
-import { useContext, useEffect, useRef } from "react";
+import { type CodeFunctions } from "../code/code";
 import type Game from "../game/Game";
-import { GameContext } from "../game/GameContext";
+import { createQSPComponent } from "../code/createQSPComponent";
 
 export const code: ((_game:Game,_$args:string[],_args:number[],_QSP:Record<string,any>,_func:CodeFunctions)=>Promise<any>) = async function(_game,_$args,_args,_QSP,_func){
 ${innerCode}
 };
 
-export default function ${identifier}({_args}:{_args:(string | number)[]}){
-	const QSP = useContext(QSPStorageContext);
-    const game = useContext(GameContext);
-	const mounted = useRef(false);
-
-	useEffect(()=>{
-		if (mounted.current) return;
-		mounted.current = true;
-
-		CodeExecute(game, _args, code, QSP);
-
-	},[]);
-
-	return <div id="${identifier}"></div>;
-}
+export default createQSPComponent("${identifier}", code);
 
 `;
 

@@ -432,12 +432,10 @@ export default class QsrcVisitor extends qsrcParserVisitor {
 
 			result = `
 //QsrcVisitorStable
-import { CodeExecute, CodeExecuteLines, type CodeFunctions } from "../code/code";
-import { QSPStorageContext } from "../storage/QSP";
-import { useContext, useEffect, useRef } from "react";
-import type { NumberArguments, StringArguments } from "../util/args";
+import { type CodeFunctions, CodeExecuteLines } from "../code/code";
 import type Game from "../game/Game";
-import { GameContext } from "../game/GameContext";
+import { createQSPComponent } from "../code/createQSPComponent";
+import type { NumberArguments, StringArguments } from "../util/args";
 
 
 export const code: ((${this.getArguments(["_game", "_$args", "_args", "_QSP", "_func"])})=>Promise<any>) = async function(${this.getArguments(["_game","_$args","_args","_QSP","_func"])}){
@@ -446,21 +444,7 @@ ${innerCode}
 	], _QSP);
 }
 
-export default function ${identifier}({_args}${this._language == "JS" ? "" : ":{_args:(string | number)[]}"}){
-	const QSP = useContext(QSPStorageContext)
-	const game = useContext(GameContext);
-	const mounted = useRef(false);
-
-	useEffect(()=>{
-		if (mounted.current) return;
-		mounted.current = true;
-
-		CodeExecute(game,_args, code, QSP);
-
-	},[]);
-
-	return <div id="${identifier}"></div>;
-}
+export default createQSPComponent("${identifier}", code);
 
 `;
 
