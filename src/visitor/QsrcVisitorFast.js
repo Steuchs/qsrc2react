@@ -634,8 +634,8 @@ export default class QsrcVisitorFast extends qsrcParserVisitor{
                 
                 result = this.visitGoSub(ctx.gosub());
             }
-            else if (ctx.gt()) result = [`return _func.gt(_game,${this.visitFunctionArguments(ctx.gt().functionArguments())});`];
-            else if (ctx.xgt()) result = [`return _func.xgt(_game,${this.visitFunctionArguments(ctx.xgt().functionArguments())});`];
+            else if (ctx.gt()) result = [`return (await _func.gt(_game,${this.visitFunctionArguments(ctx.gt().functionArguments())}));`];
+            else if (ctx.xgt()) result = [`return (await _func.xgt(_game,${this.visitFunctionArguments(ctx.xgt().functionArguments())}));`];
             //else if (ctx.inp()) result = [`{type: "E", exec:async (_$args,_args, _QSP,_func) => _func.input(${this.visitSum(ctx.inp().sum())})}`];
             else if (ctx.jump()){
                 if(debugMode)
