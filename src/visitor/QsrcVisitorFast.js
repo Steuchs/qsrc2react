@@ -957,20 +957,10 @@ ${"\t".repeat(indent+1)}return;
                     });
                     const _title = argumentsSplit[0];
                     const fname = _title.slice(1, -1).replaceAll("$", "_").toLowerCase();
-                    const fileNameToLookUp = _title.slice(1, -1).toLowerCase();
+                    
                     const remainingArguments = argumentsSplit.slice(1).map((arg) => arg.trim()).filter((arg) => !!arg);
+                    return `await _game.gs("${fname}", [${remainingArguments}]);`;
 
-                    if (identifier == fileNameToLookUp)
-                        return `await CodeExecute(_game,[${remainingArguments}],code,_QSP)`;
-
-                    const codeName = `code_${capitalize(fname)}`;
-
-
-                    //if (!existingFiles.includes(fileNameToLookUp))
-                    //    return `console.warn("File does not exist: ${fileNameToLookUp},${_title},${fname}");`;
-
-                    imports.add(`import {code as ${codeName}} from "./${fname.replaceAll("$", "_")}"`);
-                    return `await CodeExecute(_game,[${remainingArguments}],${codeName},_QSP)`;
 
                 }
             );
